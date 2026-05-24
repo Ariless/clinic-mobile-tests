@@ -1,0 +1,7 @@
+export { LoginPage } from './LoginPage'
+export { DoctorsPage } from './DoctorsPage'
+export { BookingPage } from './BookingPage'
+export { AppointmentsPage } from './AppointmentsPage'
+export { DoctorAppointmentsPage } from './DoctorAppointmentsPage'
+export { SymptomCheckerPage } from './SymptomCheckerPage'
+export { DeepLinkPage } from './DeepLinkPage'
