@@ -1,0 +1,16 @@
+  node_modules/
+  allure-results/
+  allure-report/
+  stryker-report/
+  dist/
+  pact/
+  pacts/
+  ai-properties/
+  __tests__/
+  stryker.config.ts
+  jest.helpers.config.ts
+  jest.helpers.tsconfig.json
+  scripts/
+  skills/
+  CLAUDE.md
+  EOF
