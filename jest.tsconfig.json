@@ -1,7 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "types": ["node", "@types/jest"]
-  },
-  "include": ["pact/**/*.ts", "ai-properties/**/*.ts"]
-}
