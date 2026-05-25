@@ -32,3 +32,7 @@
   features/ai-recommend.feature
   features/chaos.feature
   features/security.feature
+  pages/ios/SymptomCheckerPage.ts
+  support/claude.ts
+  jest.config.ts
+  jest.tsconfig.json
