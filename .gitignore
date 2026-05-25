@@ -14,3 +14,21 @@
   skills/
   CLAUDE.md
   EOF
+  features/integration.feature
+  features/state-transitions.feature
+  features/battery.feature
+  features/doze.feature
+  features/observability.feature
+  features/offline.feature
+  features/performance.feature
+  features/a11y.feature
+  features/orientation.feature
+  features/theming.feature
+  features/touch-targets.feature
+  features/empathy.feature
+  features/self-healing.feature
+  features/ux-oracle.feature
+  features/symptom-checker.feature
+  features/ai-recommend.feature
+  features/chaos.feature
+  features/security.feature
