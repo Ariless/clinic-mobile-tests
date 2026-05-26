@@ -1,0 +1,28 @@
+appId: com.anonymous.clinicmobile
+env:
+  PATIENT_EMAIL: patient@example.com
+  PATIENT_PASSWORD: password123
+---
+# Smoke: booked appointment appears in My Visits with pending status
+# Covers: booking.feature @smoke scenario 2
+- launchApp:
+    clearState: true
+- runFlow: _login.yaml
+
+- tapOn:
+    idRegex: "doctor-item-.*"
+    index: 0
+- tapOn:
+    idRegex: "slot-item-.*"
+    index: 0
+- assertVisible:
+    id: "booking-success-message"
+
+- tapOn:
+    id: "booking-back-button"
+- tapOn:
+    id: "tab-appointments"
+- assertVisible:
+    id: "appointments-list"
+- assertVisible:
+    text: "pending"

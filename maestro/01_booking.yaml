@@ -1,0 +1,22 @@
+appId: com.anonymous.clinicmobile
+env:
+  PATIENT_EMAIL: patient@example.com
+  PATIENT_PASSWORD: password123
+---
+# Smoke: patient can book an appointment
+# Covers: booking.feature @smoke scenario 1
+- launchApp:
+    clearState: true
+- runFlow: _login.yaml
+
+- tapOn:
+    idRegex: "doctor-item-.*"
+    index: 0
+- assertVisible:
+    id: "slots-list"
+
+- tapOn:
+    idRegex: "slot-item-.*"
+    index: 0
+- assertVisible:
+    id: "booking-success-message"

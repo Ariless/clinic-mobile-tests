@@ -1,0 +1,35 @@
+appId: com.anonymous.clinicmobile
+env:
+  PATIENT_EMAIL: patient@example.com
+  PATIENT_PASSWORD: password123
+---
+# Smoke: patient can cancel a pending appointment
+# Covers: booking.feature @smoke scenario 3
+# Note: books inline — no external API setup needed
+- launchApp:
+    clearState: true
+- runFlow: _login.yaml
+
+# Book first so there is something to cancel
+- tapOn:
+    idRegex: "doctor-item-.*"
+    index: 0
+- tapOn:
+    idRegex: "slot-item-.*"
+    index: 0
+- assertVisible:
+    id: "booking-success-message"
+
+- tapOn:
+    id: "booking-back-button"
+- tapOn:
+    id: "tab-appointments"
+- assertVisible:
+    id: "appointments-list"
+
+# Cancel the first pending appointment
+- tapOn:
+    idRegex: "appointment-cancel-button-.*"
+    index: 0
+- assertVisible:
+    text: "cancelled"

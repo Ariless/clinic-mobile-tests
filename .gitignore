@@ -1,46 +1,48 @@
-  node_modules/
-  allure-results/
-  allure-report/
-  stryker-report/
-  dist/
-  .env
-  .claude/
-  pact/
-  pacts/
-  ai-properties/
-  __tests__/
-  stryker.config.ts
-  jest.helpers.config.ts
-  jest.helpers.tsconfig.json
-  scripts/
-  skills/
-  CLAUDE.md
-  features/foldable.feature
-  features/voice-ai.feature
-  features/ondevice-ai.feature
-  step-definitions/foldable.steps.ts
-  features/integration.feature
-  features/state-transitions.feature
-  features/battery.feature
-  features/doze.feature
-  features/observability.feature
-  features/offline.feature
-  features/performance.feature
-  features/a11y.feature
-  features/orientation.feature
-  features/theming.feature
-  features/touch-targets.feature
-  features/empathy.feature
-  features/self-healing.feature
-  features/ux-oracle.feature
-  features/symptom-checker.feature
-  features/ai-recommend.feature
-  features/chaos.feature
-  features/security.feature
-  pages/ios/SymptomCheckerPage.ts
-  support/claude.ts
-  jest.config.ts
-  jest.tsconfig.json
-  support/mitmproxy-logger.py
-  support/mitmproxy-stub.py
-  support/proxy.ts
+node_modules/
+allure-results/
+allure-report/
+stryker-report/
+dist/
+.env
+.claude/
+
+# paid / course-2 content
+pact/
+pacts/
+ai-properties/
+__tests__/
+stryker.config.ts
+jest.helpers.config.ts
+jest.helpers.tsconfig.json
+scripts/
+skills/
+CLAUDE.md
+support/claude.ts
+jest.config.ts
+jest.tsconfig.json
+support/mitmproxy-logger.py
+support/mitmproxy-stub.py
+support/proxy.ts
+pages/ios/SymptomCheckerPage.ts
+features/foldable.feature
+features/voice-ai.feature
+features/ondevice-ai.feature
+step-definitions/foldable.steps.ts
+features/integration.feature
+features/state-transitions.feature
+features/battery.feature
+features/doze.feature
+features/observability.feature
+features/offline.feature
+features/performance.feature
+features/a11y.feature
+features/orientation.feature
+features/theming.feature
+features/touch-targets.feature
+features/empathy.feature
+features/self-healing.feature
+features/ux-oracle.feature
+features/symptom-checker.feature
+features/ai-recommend.feature
+features/chaos.feature
+features/security.feature

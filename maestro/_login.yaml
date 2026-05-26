@@ -1,0 +1,13 @@
+# Reusable login helper — run via `runFlow: _login.yaml` only
+# Precondition: app is launched and on login screen
+# Postcondition: doctors-list is visible
+- tapOn:
+    id: "login-email-input"
+- inputText: ${PATIENT_EMAIL}
+- tapOn:
+    id: "login-password-input"
+- inputText: ${PATIENT_PASSWORD}
+- tapOn:
+    id: "login-submit-button"
+- assertVisible:
+    id: "doctors-list"
