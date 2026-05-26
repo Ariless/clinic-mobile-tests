@@ -7,8 +7,9 @@ import type { DoctorsPage as DoctorsPageType } from './android/DoctorsPage'
 import type { BookingPage as BookingPageType } from './android/BookingPage'
 import type { AppointmentsPage as AppointmentsPageType } from './android/AppointmentsPage'
 import type { DoctorAppointmentsPage as DoctorAppointmentsPageType } from './android/DoctorAppointmentsPage'
-import type { SymptomCheckerPage as SymptomCheckerPageType } from './android/SymptomCheckerPage'
 import type { DeepLinkPage as DeepLinkPageType } from './android/DeepLinkPage'
+import type { FoldablePage as FoldablePageType } from './android/FoldablePage'
+import type { SymptomCheckerPage as SymptomCheckerPageType } from './android/SymptomCheckerPage'
 
 const platform = (process.env.PLATFORM ?? 'android') as 'android' | 'ios'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -19,8 +20,9 @@ export const DoctorsPage: typeof DoctorsPageType = p.DoctorsPage
 export const BookingPage: typeof BookingPageType = p.BookingPage
 export const AppointmentsPage: typeof AppointmentsPageType = p.AppointmentsPage
 export const DoctorAppointmentsPage: typeof DoctorAppointmentsPageType = p.DoctorAppointmentsPage
-export const SymptomCheckerPage: typeof SymptomCheckerPageType = p.SymptomCheckerPage
 export const DeepLinkPage: typeof DeepLinkPageType = p.DeepLinkPage
+export const FoldablePage: typeof FoldablePageType = p.FoldablePage
+export const SymptomCheckerPage: typeof SymptomCheckerPageType = p.SymptomCheckerPage
 
 // Instance types — allow step-definitions to use page objects as type annotations
 export type LoginPage = InstanceType<typeof LoginPageType>
@@ -28,5 +30,6 @@ export type DoctorsPage = InstanceType<typeof DoctorsPageType>
 export type BookingPage = InstanceType<typeof BookingPageType>
 export type AppointmentsPage = InstanceType<typeof AppointmentsPageType>
 export type DoctorAppointmentsPage = InstanceType<typeof DoctorAppointmentsPageType>
-export type SymptomCheckerPage = InstanceType<typeof SymptomCheckerPageType>
 export type DeepLinkPage = InstanceType<typeof DeepLinkPageType>
+export type FoldablePage = InstanceType<typeof FoldablePageType>
+export type SymptomCheckerPage = InstanceType<typeof SymptomCheckerPageType>

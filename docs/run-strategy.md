@@ -25,6 +25,8 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | `@orientation` | Portrait/landscape rotation mid-flow: booking screen and doctors list survive rotation without reset or data loss | `npm run test:orientation` |
 | `@touch-targets` | WCAG 2.5.8: all clickable elements on each screen are ≥ 44dp; failures reported with resource-id and actual dp size | `npm run test:touch-targets` |
 | `@self-healing` | Self-healing locator resilience: stale testIDs are recovered via Claude Vision screenshot analysis and W3C pointer tap | `npm run test:self-healing` |
+| `@foldable` | Foldable / large-screen layout: dual-panel visible at ≥ 600 dp, fold collapses to single panel, Claude Vision layout check | `npm run test:foldable` |
+| `@feature-flag` | Feature flag routing: AI Check tab visible only when flag ON; `/health` flag state must match tab bar; graceful degradation when flag OFF | `npm run test:feature-flag` |
 
 ## When to run
 
@@ -47,6 +49,43 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | Before release / after booking flow changes | `@idempotency` | < 5 min | Yes |
 | After deploy (optional) | `@observability` | < 2 min | No (informational) |
 | After any testID rename / locator change | `@self-healing` | < 5 min | No (informational) |
+| Before release / after layout changes | `@foldable` | < 10 min | Yes |
+| After flag changes / before release | `@feature-flag` | < 5 min | Yes |
+
+## Maestro smoke layer
+
+Maestro runs the same 3 @smoke scenarios as Appium but without an Appium server. It's a separate tool — not a tag, not a WDIO script.
+
+```bash
+# Prerequisites: brew install maestro
+cp maestro/.env.example maestro/.env   # first time only
+
+# Run all three flows
+npm run test:maestro
+
+# Single flow
+maestro test maestro/01_booking.yaml
+
+# Via Fastlane
+bundle exec fastlane maestro_smoke
+```
+
+| Flow | Covers | Duration |
+|------|--------|----------|
+| `01_booking.yaml` | Login → doctor → slot → booking confirmation | ~30 s |
+| `02_my-visits.yaml` | Booking → My Visits → status "pending" | ~40 s |
+| `03_cancel.yaml` | Booking → My Visits → cancel → status "cancelled" | ~50 s |
+
+**When to use Maestro instead of Appium smoke:**
+- Quick build sanity check without setting up Appium server
+- Onboarding: no `npm install`, no Appium, just CLI + emulator
+- After a UI-only change where you need a < 2 min sanity check
+
+**When Maestro is not enough:** any test that needs `ApiClient` (state setup, teardown), network interception, ADB chaos, or AI Vision assertions. See `docs/maestro-vs-appium.md` for the full comparison.
+
+**Known fragility:** `idRegex: "doctor-item-.*" index: 0` assumes seed data is intact. If all slots are booked the flow hangs at `assertVisible: id: "slots-list"`. Appium tests handle this by creating a fresh slot in `Before()`.
+
+---
 
 ## Flakiness policy
 
@@ -78,6 +117,8 @@ ADB chaos tests are expected to have higher variance (network timing, emulator s
 | `@orientation` | ADB access; `setOrientation` requires Appium capability `appium:settings[ignoreUnimportantViews]=false` or default behaviour |
 | `@touch-targets` | ADB access (`wm density` for px→dp conversion) |
 | `@self-healing` | `ANTHROPIC_API_KEY` in `.env`; ADB access; SUT on port 3000 |
+| `@foldable` | ADB access (`wm size` requires API 28+); `ANTHROPIC_API_KEY` for `@ai` scenario |
+| `@feature-flag` | SUT on port 3000; scenario 1 is environment-agnostic; scenarios 2+3 require specific `ENABLE_AI_RECOMMENDATION` value |
 
 ## Local quick run
 

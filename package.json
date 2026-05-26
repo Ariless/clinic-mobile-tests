@@ -27,12 +27,18 @@
     "test:theming": "TAGS=@theming wdio run wdio.conf.ts",
     "test:orientation": "TAGS=@orientation wdio run wdio.conf.ts",
     "test:touch-targets": "TAGS=@touch-targets wdio run wdio.conf.ts",
+    "test:self-healing": "TAGS=@self-healing wdio run wdio.conf.ts",
+    "test:voice-ai": "TAGS=@voice-ai wdio run wdio.conf.ts",
+    "test:ondevice-ai": "TAGS=@ondevice-ai wdio run wdio.conf.ts",
     "test:pact": "jest --testPathPattern=pact",
     "test:ai-properties": "jest --testPathPattern=ai-properties",
     "test:helpers": "jest --config jest.helpers.config.ts",
     "test:mutation": "stryker run",
     "perf:report": "node scripts/perf-report.js",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:foldable": "TAGS=@foldable wdio run wdio.conf.ts",
+    "test:feature-flag": "TAGS=@feature-flag wdio run wdio.conf.ts",
+    "test:maestro": "maestro test maestro/ --env-file maestro/.env"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",

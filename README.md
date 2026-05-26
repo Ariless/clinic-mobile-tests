@@ -34,18 +34,24 @@ clinic-mobile-tests/
     symptom-checker.feature      # AI symptom checker: invariants, graceful degradation, adversarial, confused patient
     security.feature
     performance.feature
-  step-definitions/            # Cucumber step implementations
+    foldable.feature             # Foldable/large-screen: dual-panel layout, fold collapse, Claude Vision layout check
+    feature-flag.feature        # Feature flag routing: AI tab visible only when ENABLE_AI_RECOMMENDATION=true; /health contract
+  step-definitions/            # Cucumber step implementations — steps are global across all files
+    foldable.steps.ts           # @foldable; defines shared "I am logged in as a patient" step (used by all features)
+    feature-flag.steps.ts       # @feature-flag; environment-agnostic /health ↔ tab-bar contract assertion
   pages/
     abstract/
       BasePage.ts              # Android base: resource-id XPath + UiSelector pattern matching
       BasePageIOS.ts           # iOS base: accessibility id (~) + predicate string pattern matching
     android/                   # Android locators: resource-id via XPath
-    ios/                       # iOS locators: accessibility id via XCUITest
+      # LoginPage, DoctorsPage, BookingPage, AppointmentsPage,
+      # DoctorAppointmentsPage, DeepLinkPage, FoldablePage, SymptomCheckerPage
+    ios/                       # iOS locators: accessibility id via XCUITest (mirrors android/)
     factory.ts                 # Picks android/ or ios/ at runtime from PLATFORM env var
   support/
-    adb.ts                     # ADB helpers: disableWifi(), enableWifi(), logcat(), coldStart(), resetGfxinfo(), parseJankRate(), isInstalled(), pullApkManifestXml(), enterDozeMode(), exitDozeMode()
+    adb.ts                     # ADB helpers: disableWifi(), enableWifi(), logcat(), coldStart(), resetGfxinfo(), parseJankRate(), isInstalled(), pullApkManifestXml(), enterDozeMode(), exitDozeMode(), setDisplaySize(), resetDisplaySize()
     xcrun.ts                   # iOS mirror: forceStop(), coldStart(), getLog(), setTimezone(), enrollBiometric(), screenshot()
-    claude.ts                  # Claude Vision helpers: compareScreenshot(), auditA11y(), evaluateUX()
+    claude.ts                  # Claude Vision helpers: compareScreenshot(), auditA11y(), evaluateUX(), evaluateLayout()
   pact/
     mobile.pact.consumer.test.ts  # Consumer contract: clinic-mobile → clinic-booking-api (6 interactions)
     tsconfig.json              # IDE type support for pact/ (Jest uses jest.tsconfig.json at root)
@@ -57,11 +63,18 @@ clinic-mobile-tests/
   jest.tsconfig.json           # Root Jest tsconfig — covers pact/ + ai-properties/, excludes WDIO globals
   wdio.conf.ts                 # PLATFORM env var picks pages/android/ or pages/ios/
   jest.config.ts               # Jest config: two test suites (pact + ai-properties), separate --testPathPattern scripts
+  maestro/
+    _login.yaml                # Reusable login helper (runFlow only)
+    01_booking.yaml            # Smoke: book appointment
+    02_my-visits.yaml          # Smoke: booking appears in My Visits with pending status
+    03_cancel.yaml             # Smoke: cancel pending appointment
+    .env.example               # Credentials template
   docs/
     state-machine.md           # Formal appointment lifecycle model
-    run-strategy.md            # When to run @smoke / @regression / @chaos / @ai
+    run-strategy.md            # When to run @smoke / @regression / @chaos / @ai + Maestro section
     pairwise-matrix.md         # Device × OS × network × locale coverage strategy (18 pairwise combinations)
     performance-budget.md      # Cold start / TTI / memory SLAs as CI assertions
+    maestro-vs-appium.md       # Comparison: when to use each tool, trade-offs, hidden assumptions
 ```
 
 One `.feature` file, two platforms:
@@ -115,8 +128,11 @@ npm run test:deep-link                 # @deeplink — clinic:// URI scheme: val
 npm run test:theming                   # @theming — dark mode readability via Claude Vision
 npm run test:orientation               # @orientation — portrait/landscape rotation mid-flow
 npm run test:touch-targets             # @touch-targets — WCAG 2.5.8: all clickable elements ≥ 44dp
+npm run test:foldable                  # @foldable — dual-panel layout on large screen / foldable device
+npm run test:feature-flag              # @feature-flag — AI tab visibility matches ENABLE_AI_RECOMMENDATION flag
 npm run test:pact                      # consumer contract tests (Jest, no device required)
 npm run test:ai-properties             # property-based + statistical + SLA tests (Jest, no device, needs SUT + ENABLE_AI_RECOMMENDATION=true)
+npm run test:maestro                   # Maestro smoke flows (no Appium required — needs maestro CLI)
 ```
 
 > **Three test runners in one project.** `npm test` and all tagged scripts use WDIO/Cucumber (Appium, device required). `npm run test:pact` and `npm run test:ai-properties` both use Jest — no emulator needed. `jest.tsconfig.json` at root excludes WDIO globals so all Jest tests get clean types. Each Jest script uses `--testPathPattern` to scope itself — extending `jest.config.ts` with a new suite does not silently change other scripts.
@@ -142,6 +158,11 @@ npm run test:ai-properties             # property-based + statistical + SLA test
 | `@theming` | Dark mode readability: Claude Vision checks login, doctors list, and booking screen for invisible or clipped content | Before release / after UI theme changes |
 | `@orientation` | Portrait/landscape rotation mid-booking and mid-doctors-list: screen does not reset, form data not lost, no error triggered | Before release / after UI layout changes |
 | `@touch-targets` | WCAG 2.5.8: all clickable elements on each screen are ≥ 44dp; failures reported with resource-id and actual dp/px size | Before release |
+| `@self-healing` | Stale testIDs recovered via Claude Vision + W3C pointer tap | After testID renames |
+| `@foldable` | Dual-panel layout on large screen (≥ 600 dp): doctors list + booking panel side by side; fold collapses back to single panel; Claude Vision layout check | Before release / after layout changes |
+| `@feature-flag` | AI Check tab appears only when `ENABLE_AI_RECOMMENDATION=true`; environment-agnostic contract: `/health` flag state must match visible tab bar | After flag changes / before release |
+
+> **Maestro smoke** (`npm run test:maestro`): same 3 @smoke scenarios without an Appium server — quick sanity check after a build. Requires `brew install maestro` and `cp maestro/.env.example maestro/.env`. See [`docs/maestro-vs-appium.md`](docs/maestro-vs-appium.md) for when to use each tool.
 
 > **Jest-only test suites** (no WDIO tag): `test:pact` — run before merging API client changes; `test:ai-properties` — run before merging AI service changes or after updating `ALLOWED_SPECIALTIES`.
 
@@ -159,11 +180,12 @@ npm run test:ai-properties             # property-based + statistical + SLA test
 
 **Fastlane** wraps the most-used test commands into named lanes:
 ```bash
-bundle exec fastlane ci        # type-check + pact + ai-properties (no device)
-bundle exec fastlane smoke     # @smoke + Allure report (device required)
-bundle exec fastlane regression  # full suite + Allure report
-bundle exec fastlane perf      # cold start + jank gate
-bundle exec fastlane security  # logcat credential check
+bundle exec fastlane ci             # type-check + pact + ai-properties (no device)
+bundle exec fastlane smoke          # @smoke + Allure report (device required)
+bundle exec fastlane regression     # full suite + Allure report
+bundle exec fastlane perf           # cold start + jank gate
+bundle exec fastlane security       # logcat credential check
+bundle exec fastlane maestro_smoke  # Maestro 3-flow smoke (no Appium, needs maestro CLI)
 ```
 
 ## SUT apps in this project

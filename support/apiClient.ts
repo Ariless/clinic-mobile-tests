@@ -135,4 +135,10 @@ export const ApiClient = {
     })
     return res.status
   },
+
+  async getHealth(): Promise<{ status: string; checks: { ai: { recommendationEnabled: boolean; status: string } } }> {
+    const res = await fetch(`${BASE_URL}/health`)
+    if (!res.ok) throw new Error(`GET /health → ${res.status}`)
+    return res.json()
+  },
 }

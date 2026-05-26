@@ -259,4 +259,15 @@ export const ADB = {
       return 160
     }
   },
+
+  // Sets the display size to simulate a foldable or large-screen form factor.
+  // Use resetDisplaySize() in After() to restore the emulator to its default resolution.
+  setDisplaySize(width: number, height: number): void {
+    adb(`wm size ${width}x${height}`)
+  },
+
+  // Resets the display size to the emulator's physical resolution.
+  resetDisplaySize(): void {
+    adb('wm size reset')
+  },
 }

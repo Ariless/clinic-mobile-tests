@@ -3,6 +3,8 @@
   allure-report/
   stryker-report/
   dist/
+  .env
+  .claude/
   pact/
   pacts/
   ai-properties/
@@ -13,7 +15,10 @@
   scripts/
   skills/
   CLAUDE.md
-  EOF
+  features/foldable.feature
+  features/voice-ai.feature
+  features/ondevice-ai.feature
+  step-definitions/foldable.steps.ts
   features/integration.feature
   features/state-transitions.feature
   features/battery.feature
@@ -36,3 +41,6 @@
   support/claude.ts
   jest.config.ts
   jest.tsconfig.json
+  support/mitmproxy-logger.py
+  support/mitmproxy-stub.py
+  support/proxy.ts

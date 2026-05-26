@@ -41,6 +41,8 @@ Use `this.el('testID')` or `this.rid('testID')` — never write raw XPath in pag
 ### DoctorsScreen
 **Page marker:** `doctors-list`
 
+Single-panel layout (width < 600 dp):
+
 | testID | Element |
 |--------|---------|
 | `doctors-list` | scrollable list of doctor cards |
@@ -49,7 +51,18 @@ Use `this.el('testID')` or `this.rid('testID')` — never write raw XPath in pag
 | `doctors-error` | error message |
 | `offline-banner` | offline mode banner |
 | `logout-button` | log out button |
-| `doctor-name-{id}` | doctor card by ID (dynamic) |
+| `doctor-item-{id}` | doctor card touchable (dynamic) |
+| `doctor-name-{id}` | doctor name text (dynamic) |
+| `doctor-specialty-{id}` | doctor specialty text (dynamic) |
+
+Dual-panel layout (width ≥ 600 dp — foldable / large screen):
+
+| testID | Element |
+|--------|---------|
+| `dual-panel-container` | root container (present only on large screens) |
+| `panel-doctors` | left panel — doctor list (same doctor-item-* cards inside) |
+| `panel-booking` | right panel — BookingScreen inline (visible after selecting a doctor) |
+| `panel-booking-placeholder` | right panel — placeholder text "Select a doctor to book" (visible before selection) |
 
 ### BookingScreen — slot selection
 **Page marker:** `slots-list`
@@ -114,18 +127,32 @@ Opened via `clinic://appointment/:id` URI scheme. Fetches single appointment by 
 
 ### SymptomCheckerScreen
 **Page marker:** `symptom-input`
+**Page object:** `SymptomCheckerPage` — `submitSymptoms()`, `waitForResultOrError()`, `isResultVisible()`, `isErrorVisible()`
+**Access:** only reachable via `tab-ai`, which is absent when `ENABLE_AI_RECOMMENDATION=false`
 
 | testID | Element |
 |--------|---------|
 | `symptom-input` | symptom text field |
 | `symptom-submit` | submit button |
 | `symptom-loading` | AI request in progress |
-| `symptom-result` | result container |
+| `symptom-result` | result container (visible on success) |
 | `symptom-specialty` | recommended specialty |
 | `symptom-reasoning` | AI reasoning text |
 | `symptom-doctors-list` | filtered doctors list |
 | `symptom-doctors-empty` | no doctors for specialty |
-| `symptom-error` | error message |
+| `symptom-error` | error message — shown for `FEATURE_DISABLED`, `UNKNOWN_SPECIALTY`, or network failure |
+| `voice-input-button` | mic button; tapping with `EXPO_PUBLIC_TEST_VOICE_TEXT` set injects that value instead of real mic |
+| `voice-listening-indicator` | shown while Voice.start() is active |
+| `voice-permission-error` | shown when RECORD_AUDIO denied |
+| `ondevice-badge` | visible only when built with `EXPO_PUBLIC_DEVICE_AI_MODE=ondevice`; used as runtime signal in tests |
+
+**`symptom-error` messages by errorCode:**
+
+| errorCode | Message shown |
+|-----------|--------------|
+| `FEATURE_DISABLED` | "AI recommendations are temporarily unavailable. Please browse all doctors instead." |
+| `UNKNOWN_SPECIALTY` | "Could not determine a specialty from these symptoms. Please try describing them differently." |
+| anything else | "Something went wrong. Please try again." |
 
 ---
 
@@ -133,7 +160,9 @@ Opened via `clinic://appointment/:id` URI scheme. Fetches single appointment by 
 
 | Pattern | Usage |
 |---------|-------|
-| `doctor-name-{id}` | doctor card, `id` = DB doctor record id |
+| `doctor-item-{id}` | doctor card touchable, `id` = DB doctor record id |
+| `doctor-name-{id}` | doctor name text, `id` = DB doctor record id |
+| `doctor-specialty-{id}` | doctor specialty text, `id` = DB doctor record id |
 | `appointment-cancel-button-{id}` | patient cancel, `id` = appointment id |
 | `appointment-status-{id}` | appointment status text (AppointmentsScreen + AppointmentDetailScreen) |
 | `appointment-item-{id}` | appointment card (AppointmentsScreen + AppointmentDetailScreen) |
@@ -147,8 +176,16 @@ Opened via `clinic://appointment/:id` URI scheme. Fetches single appointment by 
 
 ## Navigation (tab bar)
 
-Patient role: **Doctors** tab → **My Appointments** tab → **AI Check** tab
+Patient role: **Doctors** tab → **My Appointments** tab → **AI Check** tab *(AI Check only when `ENABLE_AI_RECOMMENDATION=true`)*
 Doctor role: single **Appointments** screen
+
+| testID | Tab |
+|--------|-----|
+| `tab-doctors` | Doctors (always visible) |
+| `tab-appointments` | My Visits (always visible) |
+| `tab-ai` | AI Check (conditional — absent when flag is OFF) |
+
+`tab-ai` is not rendered when `ENABLE_AI_RECOMMENDATION=false`. Use `isExisting()` before `isDisplayed()`.
 
 Tab navigation uses `driver.switchContext` is not needed — all tabs in same Native context.
 
