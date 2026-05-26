@@ -1,0 +1,43 @@
+default_platform(:android)
+
+platform :android do
+  desc "Smoke suite — requires running emulator, Appium, and SUT"
+  lane :smoke do
+    sh("npm run test:smoke")
+    sh("npx allure generate allure-results --clean -o allure-report")
+    UI.success("Smoke suite passed. Report: allure-report/index.html")
+  end
+
+  desc "Full regression suite — nightly"
+  lane :regression do
+    sh("npm run test:regression")
+    sh("npx allure generate allure-results --clean -o allure-report")
+    UI.success("Regression suite passed. Report: allure-report/index.html")
+  end
+
+  desc "Static checks — type-check + Pact consumer + AI property tests (no device required)"
+  lane :ci do
+    sh("npm run type-check")
+    sh("npm run test:pact")
+    sh("npm run test:ai-properties", error_callback: lambda { |_|
+      UI.user_error!("AI property tests failed — check ENABLE_AI_RECOMMENDATION and AI_MOCK_RESPONSE env vars")
+    })
+    UI.success("Static checks passed")
+  end
+
+  desc "Security check — JWT not in logcat (requires running emulator)"
+  lane :security do
+    sh("npm run test:security")
+  end
+
+  desc "Performance gate — cold start + jank (requires running emulator)"
+  lane :perf do
+    sh("npm run test:perf")
+  end
+
+  desc "Maestro smoke — fast sanity check without Appium (requires maestro CLI and running emulator)"
+  lane :maestro_smoke do
+    sh("maestro test maestro/ --env-file maestro/.env")
+    UI.success("Maestro smoke passed")
+  end
+end
