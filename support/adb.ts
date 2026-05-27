@@ -6,11 +6,13 @@ function adb(command: string): string {
 
 export const ADB = {
   disableWifi(): void {
-    adb('svc wifi disable')
+    // svc wifi disable does not sever the 10.0.2.2 host route on Android emulators.
+    // cmd connectivity airplane-mode is the correct API for Android 9+ (API 28+).
+    adb('cmd connectivity airplane-mode enable')
   },
 
   enableWifi(): void {
-    adb('svc wifi enable')
+    adb('cmd connectivity airplane-mode disable')
   },
 
   pressHome(): void {

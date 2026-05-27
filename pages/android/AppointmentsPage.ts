@@ -32,6 +32,8 @@ export class AppointmentsPage extends BasePage {
       const status = await $(this.rid(`appointment-status-${id}`)).getText()
       if (status === 'pending' || status === 'confirmed') {
         await this.tap(`appointment-cancel-button-${id}`)
+        // wait for API to complete — button disappears when status changes to 'cancelled'
+        await $(this.rid(`appointment-cancel-button-${id}`)).waitForDisplayed({ timeout: 10000, reverse: true })
         return
       }
     }
