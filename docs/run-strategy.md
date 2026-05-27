@@ -15,7 +15,8 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | `@empathy` | Medical-grade communication quality: login error, network failure, cancellation messages rated by Claude 1–5 | `npm run test:empathy` |
 | `@idempotency` | Retry after network drop does not create duplicate appointments — cross-layer DB assertion via API | `npm run test:idempotency` |
 | `@observability` | Mobile booking traced in Loki: `appointment.booked` event with correct appointmentId | `npm run test:observability` |
-| `@security` | JWT not in logcat, credentials not in logcat; APK manifest declares `allowBackup=false` (HIPAA compliance) | `npm run test:security` |
+| `@security` | JWT not in logcat, credentials not in logcat; APK manifest declares `allowBackup=false` (HIPAA compliance); iOS: `PrivacyInfo.xcprivacy` exists, required reason API categories declared, `NSPrivacyTracking=false` | `npm run test:security` |
+| `@security @ios` | iOS Privacy Manifest + ATT compliance: manifest exists, API categories declared, no user tracking | `npm run test:ios-privacy` |
 | `@a11y` | Touch targets, TalkBack, font scale | `npm run test:a11y` |
 | `@perf` | Cold start time gate (< 2000ms) | `npm run test:perf` |
 | `@offline` | Cache served when offline; cancel blocked; conflict resolution (doctor confirms while patient offline → reconnect → correct status); sync on reconnect | `npm run test:offline` |
@@ -53,6 +54,7 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | Before release / after layout changes | `@foldable` | < 10 min | Yes |
 | After flag changes / before release | `@feature-flag` | < 5 min | Yes |
 | Before release / after AI recommendation changes | `@eu-ai-act` | < 10 min | Yes |
+| Before release / after iOS build | `@security @ios` | < 5 min | Yes |
 
 ## Maestro smoke layer
 
@@ -105,6 +107,7 @@ ADB chaos tests are expected to have higher variance (network timing, emulator s
 |-----|----------|
 | All | Android emulator running, SUT on port 3000, Appium server on port 4723 |
 | `@ai` | `ANTHROPIC_API_KEY` in `.env` |
+| `test:ai-properties` | SUT running on port 3000 with `ENABLE_AI_RECOMMENDATION=true`; `ANTHROPIC_API_KEY` in `sut/.env` for real Claude (CI uses `AI_MOCK_RESPONSE=true` — deterministic; local without mock tests real model consistency) |
 | `@ux-oracle` | `ANTHROPIC_API_KEY` in `.env` |
 | `@empathy` | `ANTHROPIC_API_KEY` in `.env` |
 | `@idempotency` | ADB access; SUT on port 3000 |
@@ -113,6 +116,7 @@ ADB chaos tests are expected to have higher variance (network timing, emulator s
 | `@chaos` | ADB access to emulator (`adb devices` shows device) |
 | `@cross-role` | Doctor and patient test accounts seeded in SUT |
 | `@security` | `aapt2` in `$ANDROID_HOME/build-tools` or PATH (for APK manifest inspection; part of Android SDK build-tools) |
+| `@security @ios` | iOS app installed on booted simulator (`xcrun simctl get_app_container` must succeed); `plutil` in PATH (standard macOS tool, no install needed) |
 | `@doze` | ADB access to emulator; `dumpsys deviceidle force-idle` requires API 23+; SUT on port 3000 |
 | `@deeplink` | ADB access; `clinic://` scheme registered in app.json + APK installed; SUT on port 3000 |
 | `@theming` | `ANTHROPIC_API_KEY` in `.env`; ADB access (dark mode toggle requires API 28+) |
@@ -138,4 +142,16 @@ npm run test:smoke
 
 ## CI
 
-Each push runs `@smoke`. Nightly cron runs `@regression`. Both jobs publish an Allure report as a CI artifact and fail the pipeline on any untagged-`@flaky` failure.
+**Static job** runs on every push and PR: `type-check` + `test:pact` + `test:ai-properties` + `test:helpers` — no device, ~3 min.
+
+**Device jobs** are `workflow_dispatch` only (too slow for every push):
+
+| Job | Trigger checkbox | Duration | Output |
+|-----|-----------------|----------|--------|
+| `smoke` | `run_smoke` | ~20 min | Allure report (Android) |
+| `smoke-ios` | `run_smoke_ios` | ~25 min | Allure report (iOS) |
+| `maestro-smoke` | `run_maestro` | ~8 min | JUnit XML — no Appium overhead |
+| `perf` | `run_perf` | ~25 min | Allure + `perf-summary.json` |
+| `mutation` | `run_mutation` | ~15 min | Stryker HTML report |
+
+All device jobs fail the pipeline on any untagged-`@flaky` failure and publish artifacts with 30-day retention.

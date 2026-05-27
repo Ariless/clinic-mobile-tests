@@ -1,4 +1,6 @@
 import { execSync } from 'child_process'
+import { existsSync } from 'fs'
+import path from 'path'
 
 // Targets the booted simulator by default. Set IOS_DEVICE_UDID for a specific device.
 const DEVICE = process.env.IOS_DEVICE_UDID ?? 'booted'
@@ -86,5 +88,42 @@ export const XCRun = {
   // Install an .app bundle onto the booted simulator.
   install(appPath: string): void {
     simctl(`install ${DEVICE} ${appPath}`)
+  },
+
+  setDarkMode(): void {
+    simctl(`ui ${DEVICE} appearance dark`)
+  },
+
+  setLightMode(): void {
+    simctl(`ui ${DEVICE} appearance light`)
+  },
+
+  // Return the .app bundle path for an installed app.
+  // Throws if the app is not installed — callers can catch to detect missing app.
+  getAppBundlePath(bundleId: string): string {
+    return simctl(`get_app_container ${DEVICE} ${bundleId}`)
+  },
+
+  // True if PrivacyInfo.xcprivacy exists inside the app bundle.
+  hasPrivacyManifest(bundleId: string): boolean {
+    const appPath = this.getAppBundlePath(bundleId)
+    return existsSync(path.join(appPath, 'PrivacyInfo.xcprivacy'))
+  },
+
+  // Parse PrivacyInfo.xcprivacy from the app bundle as a JSON object.
+  // Uses plutil to convert the binary/XML plist to JSON so callers don't need a plist parser.
+  readPrivacyManifest(bundleId: string): Record<string, unknown> {
+    const appPath = this.getAppBundlePath(bundleId)
+    const manifestPath = path.join(appPath, 'PrivacyInfo.xcprivacy')
+    const json = execSync(`plutil -convert json -o - "${manifestPath}"`, { encoding: 'utf-8' })
+    return JSON.parse(json)
+  },
+
+  // Parse Info.plist from the app bundle as a JSON object.
+  readInfoPlist(bundleId: string): Record<string, unknown> {
+    const appPath = this.getAppBundlePath(bundleId)
+    const plistPath = path.join(appPath, 'Info.plist')
+    const json = execSync(`plutil -convert json -o - "${plistPath}"`, { encoding: 'utf-8' })
+    return JSON.parse(json)
   },
 }

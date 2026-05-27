@@ -49,7 +49,7 @@ Every pair of (Device class, API), (Device class, Network), (Device class, Local
 | Local dev | #2, #9, #16 (`@smoke`, Fast network, en-GB) | Fastest feedback loop |
 | PR gate | #2, #9, #16 | Same as local — blocks merge |
 | Nightly CI | All 18 | Full pairwise coverage; Allure report attached |
-| Firebase Test Lab | All 18, real devices | Removes emulator drift; planned for Phase 2h |
+| Firebase Test Lab | All 18, real devices | Removes emulator drift; requires GCP project (#18, deferred) |
 
 Local and PR runs use AVD Pixel 6 API 33 (`en-GB`, WiFi). This covers rows #2 and #9 — both high-priority smoke combinations.
 
@@ -86,6 +86,6 @@ Which combinations are expected to be highest risk and why.
 
 ## What we do not test here
 
-- iOS × network × locale — separate matrix; `xcrun.ts` mirrors ADB helpers; planned for Phase 2h
+- iOS × network × locale — separate matrix; `xcrun.ts` mirrors ADB helpers (Phase 2h done 2026-05-21). iOS pairwise matrix is deferred: Network Link Conditioner (iOS slow-network equivalent) is not automatable from `xcrun`; chaos and offline dimensions are not portable. Cross-platform page objects and factory exist; baseline parity matrix can be run with Device × Locale only.
 - Tablet form factors — not a clinic booking app risk dimension
 - Android API < 31 — React Native 0.73 minimum supported SDK is 23; below API 31 is < 1% market share in the EU (clinic's target geography)

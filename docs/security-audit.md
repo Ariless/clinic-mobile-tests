@@ -16,7 +16,7 @@
 | M3 | Insecure Authentication/Authorization | ✅ covered | security.feature — session invalidation after logout |
 | M4 | Insufficient Input/Output Validation | ✅ covered | symptom-checker.feature — adversarial + prompt injection |
 | M5 | Insecure Communication | ⚠️ partial | HTTPS enforced in production config; certificate pinning not implemented |
-| M6 | Inadequate Privacy Controls | ⚠️ partial | allowBackup=false (#103); third-party SDK leakage (#106) planned |
+| M6 | Inadequate Privacy Controls | ⚠️ partial | allowBackup=false (#103); iOS PrivacyInfo.xcprivacy + no-tracking (#135); SDK leakage (#106) planned |
 | M7 | Insufficient Binary Protections | ⚠️ partial | #104 secrets scan; obfuscation/root detection out of scope (learning project) |
 | M8 | Security Misconfiguration | ✅ covered | security.feature — allowBackup=false + debuggable=false APK manifest checks |
 | M9 | Insecure Data Storage | ✅ covered | security.feature — JWT not in logcat; allowBackup=false; data dir permissions; debuggable=false |
@@ -124,6 +124,12 @@ Fix persisted in `app.json` to survive `expo prebuild`.
 
 *Third-party SDK data leakage (#106 — planned):*  
 Network proxy (mitmproxy/Charles) during full booking flow → assert requests to Firebase Analytics / Crashlytics do not contain patient name, email, diagnosis, or `appointmentId` in payload or query params.
+
+*iOS Privacy Manifest (#135 — done 2026-05-27):*  
+`security.feature` Scenarios 9–11 (`@ios`): verifies `PrivacyInfo.xcprivacy` exists in app bundle; declares required reason API categories used by React Native internals (`NSPrivacyAccessedAPICategoryUserDefaults`, `NSPrivacyAccessedAPICategoryFileTimestamp`, `NSPrivacyAccessedAPICategorySystemBootTime`); `NSPrivacyTracking: false` and no `NSUserTrackingUsageDescription` in `Info.plist`.  
+App Store context: Apple requires `PrivacyInfo.xcprivacy` since May 2024 (ITMS-91053 rejection). Missing declarations are a submission blocker, not a warning.  
+HIPAA context: `NSPrivacyTracking: false` is the machine-readable declaration that no patient data flows to advertising networks. The test enforces this cannot regress.  
+Enabled by: `ios.privacyManifests` in `app.json` → Expo config plugin writes `PrivacyInfo.xcprivacy` during `expo prebuild`.
 
 **Residual gap:** #106 requires proxy setup and is the most complex test in the security block. Included in the backlog; not yet automated.
 
