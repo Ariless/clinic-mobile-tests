@@ -7,6 +7,9 @@ dist/
 .claude/
 
 # paid / course-2 content
+docs/platform-parity.md
+features/eu-ai-act.feature
+step-definitions/eu-ai-act.steps.ts
 pact/
 pacts/
 ai-properties/

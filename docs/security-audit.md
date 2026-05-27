@@ -18,8 +18,8 @@
 | M5 | Insecure Communication | ⚠️ partial | HTTPS enforced in production config; certificate pinning not implemented |
 | M6 | Inadequate Privacy Controls | ⚠️ partial | allowBackup=false (#103); third-party SDK leakage (#106) planned |
 | M7 | Insufficient Binary Protections | ⚠️ partial | #104 secrets scan; obfuscation/root detection out of scope (learning project) |
-| M8 | Security Misconfiguration | ✅ covered | security.feature — allowBackup=false APK manifest check |
-| M9 | Insecure Data Storage | ✅ covered | security.feature — JWT not in logcat; allowBackup=false |
+| M8 | Security Misconfiguration | ✅ covered | security.feature — allowBackup=false + debuggable=false APK manifest checks |
+| M9 | Insecure Data Storage | ✅ covered | security.feature — JWT not in logcat; allowBackup=false; data dir permissions; debuggable=false |
 | M10 | Insufficient Cryptography | ➡️ SUT layer | JWT uses HS256 with env secret; tested at API layer (Project 1) |
 
 ---
@@ -182,7 +182,13 @@ Asserts patient email and password do not appear in plaintext in device logs dur
 *allowBackup=false (#103 — done):*  
 Ensures app data cannot be extracted via `adb backup` or Google cloud backup without encryption.
 
-**Residual gap:** AsyncStorage (where the JWT is stored in the mobile app) is not encrypted by default in React Native. Encrypted storage (`react-native-encrypted-storage` or equivalent) would be the production fix. Currently out of scope; documented here.
+*App data directory not world-readable (#30 — done):*  
+`security.feature` Scenario 7: `adb shell ls -ld /data/data/<package>` → asserts permission bits are `drwx------` (owner-only). World-readable bits would allow any installed app to access AsyncStorage, SQLite DBs, and cached responses without root.
+
+*Debuggable=false prevents run-as extraction (#30 — done):*  
+`security.feature` Scenario 8: APK manifest check extended to `android:debuggable`. Debug builds allow `adb shell run-as <package>` — a trivial way to extract AsyncStorage contents (including the JWT) on any device with ADB access. On release builds this flag must be false.
+
+**Residual gap:** AsyncStorage itself is not encrypted at rest — the JWT is stored in plaintext within the app's private directory. Protection relies on OS-level directory isolation (drwx------) and non-debuggable release builds. Production fix: `react-native-encrypted-storage` or Keystore-backed encryption. Documented and acknowledged.
 
 ---
 

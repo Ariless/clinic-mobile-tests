@@ -27,6 +27,7 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | `@self-healing` | Self-healing locator resilience: stale testIDs are recovered via Claude Vision screenshot analysis and W3C pointer tap | `npm run test:self-healing` |
 | `@foldable` | Foldable / large-screen layout: dual-panel visible at ≥ 600 dp, fold collapses to single panel, Claude Vision layout check | `npm run test:foldable` |
 | `@feature-flag` | Feature flag routing: AI Check tab visible only when flag ON; `/health` flag state must match tab bar; graceful degradation when flag OFF | `npm run test:feature-flag` |
+| `@eu-ai-act` | EU AI Act compliance (medical AI = HIGH RISK): transparency disclosure banner, human oversight override, 6-entry golden dataset (@ondevice, deterministic), consistency 3×, graceful uncertainty | `TAGS="@eu-ai-act" npm test` |
 
 ## When to run
 
@@ -51,6 +52,7 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | After any testID rename / locator change | `@self-healing` | < 5 min | No (informational) |
 | Before release / after layout changes | `@foldable` | < 10 min | Yes |
 | After flag changes / before release | `@feature-flag` | < 5 min | Yes |
+| Before release / after AI recommendation changes | `@eu-ai-act` | < 10 min | Yes |
 
 ## Maestro smoke layer
 

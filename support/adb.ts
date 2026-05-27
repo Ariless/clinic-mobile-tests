@@ -260,6 +260,17 @@ export const ADB = {
     }
   },
 
+  // Returns the ls -ld output for the app's private data directory.
+  // On a correctly configured app the permission bits are drwx------ (owner-only).
+  // World-readable other-bits (drwxr-xr-x) would expose patient data to any app on device.
+  getAppDataPermissions(packageName: string): string {
+    try {
+      return execSync(`adb shell ls -ld /data/data/${packageName} 2>/dev/null`, { encoding: 'utf-8' }).trim()
+    } catch {
+      return ''
+    }
+  },
+
   // Sets the display size to simulate a foldable or large-screen form factor.
   // Use resetDisplaySize() in After() to restore the emulator to its default resolution.
   setDisplaySize(width: number, height: number): void {

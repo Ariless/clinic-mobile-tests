@@ -36,9 +36,11 @@ clinic-mobile-tests/
     performance.feature
     foldable.feature             # Foldable/large-screen: dual-panel layout, fold collapse, Claude Vision layout check
     feature-flag.feature        # Feature flag routing: AI tab visible only when ENABLE_AI_RECOMMENDATION=true; /health contract
+    eu-ai-act.feature           # [premium] EU AI Act compliance (HIGH RISK medical AI): transparency, human oversight, golden dataset, consistency
   step-definitions/            # Cucumber step implementations — steps are global across all files
     foldable.steps.ts           # @foldable; defines shared "I am logged in as a patient" step (used by all features)
     feature-flag.steps.ts       # @feature-flag; environment-agnostic /health ↔ tab-bar contract assertion
+    eu-ai-act.steps.ts          # [premium] @eu-ai-act; compliance assertions — disclosure banner, browse-all override, golden dataset
   pages/
     abstract/
       BasePage.ts              # Android base: resource-id XPath + UiSelector pattern matching

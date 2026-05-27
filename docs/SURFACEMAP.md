@@ -145,6 +145,8 @@ Opened via `clinic://appointment/:id` URI scheme. Fetches single appointment by 
 | `voice-listening-indicator` | shown while Voice.start() is active |
 | `voice-permission-error` | shown when RECORD_AUDIO denied |
 | `ondevice-badge` | visible only when built with `EXPO_PUBLIC_DEVICE_AI_MODE=ondevice`; used as runtime signal in tests |
+| `ai-disclosure-banner` | permanent AI disclosure notice — always visible on SymptomCheckerScreen; EU AI Act Art. 13 Transparency |
+| `ai-browse-all-button` | visible inside `symptom-result`; allows patient to navigate to full doctors list ignoring AI recommendation; EU AI Act Art. 14 Human Oversight |
 
 **`symptom-error` messages by errorCode:**
 
