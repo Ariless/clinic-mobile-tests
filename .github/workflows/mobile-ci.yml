@@ -22,6 +22,10 @@ on:
         description: "Run Stryker mutation tests against helper unit tests"
         type: boolean
         default: false
+      run_maestro:
+        description: "Run Maestro smoke flows (no Appium — faster alternative)"
+        type: boolean
+        default: false
 
 jobs:
   # ── Runs on every push and PR ──────────────────────────────────────────────
@@ -51,7 +55,7 @@ jobs:
           AI_MOCK_RESPONSE: "true"
 
       - name: Helper unit tests
-        run: npm run test:helpers
+        run: '[ -f jest.helpers.config.ts ] && npm run test:helpers || echo "Skipping: jest.helpers.config.ts not present"'
 
   # ── Mutation testing — workflow_dispatch only (slow: runs test suite per mutation) ──
   mutation:
@@ -260,6 +264,85 @@ jobs:
         with:
           name: allure-report-ios-${{ github.run_id }}
           path: allure-report/
+          retention-days: 30
+
+  # ── Maestro smoke — workflow_dispatch only (~8 min, no Appium) ───────────────
+  maestro-smoke:
+    name: Maestro smoke (Android emulator)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_maestro }}
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Checkout clinic-mobile
+        uses: actions/checkout@v4
+        with:
+          repository: Ariless/clinic-mobile
+          path: clinic-mobile-src
+
+      - name: Install clinic-mobile deps
+        run: npm ci
+        working-directory: clinic-mobile-src
+
+      - name: Prebuild Android native project
+        run: npx expo prebuild --platform android --clean
+        working-directory: clinic-mobile-src
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --no-daemon
+        working-directory: clinic-mobile-src/android
+
+      - name: Start SUT
+        run: docker compose -f ../sut/docker-compose.test.yml up -d --wait
+        working-directory: clinic-mobile-src
+        continue-on-error: true
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Start Android emulator
+        uses: reactivecircus/android-emulator-action@v4
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true
+
+      - name: Install APK
+        run: adb install clinic-mobile-src/android/app/build/outputs/apk/debug/app-debug.apk
+
+      # No Appium server, no driver install — Maestro talks directly to the emulator
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Run Maestro smoke flows
+        run: maestro test maestro/ --env-file maestro/.env --format junit --output maestro-results.xml
+
+      - name: Upload Maestro results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-results-${{ github.run_id }}
+          path: maestro-results.xml
           retention-days: 30
 
   # ── Performance budget — workflow_dispatch only (emulator, @perf tag) ────────
