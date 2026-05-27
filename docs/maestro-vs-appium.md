@@ -59,6 +59,17 @@ maestro test maestro/01_booking.yaml
 maestro test --env PATIENT_EMAIL=other@example.com maestro/01_booking.yaml
 ```
 
+## CI
+
+Both tools have dedicated jobs in `.github/workflows/mobile-ci.yml`, triggered via `workflow_dispatch`:
+
+| Job | Input checkbox | Setup overhead in CI | Output |
+|-----|---------------|---------------------|--------|
+| `smoke` | `run_smoke` | `npm install -g appium` + driver install + `sleep 8` | Allure HTML report |
+| `maestro-smoke` | `run_maestro` | `curl get.maestro.mobile.dev \| bash` + PATH export | JUnit XML |
+
+Both jobs build the same APK and boot the same emulator. The difference is what happens after APK install: Maestro skips the Appium server entirely. On CI the time saving is ~3 min (Appium install + start).
+
 ## Hidden assumption
 
 `idRegex: "doctor-item-.*" index: 0` assumes the first doctor in the list is always tappable and has an available slot. If seed data is missing or all slots are booked, the flow will hang on `assertVisible: id: "slots-list"`. Appium tests handle this by calling `ApiClient.createAvailableSlot()` in `Before` hooks.

@@ -180,6 +180,8 @@ npm run test:maestro                   # Maestro smoke flows (no Appium required
 
 **Smoke job** (`workflow_dispatch` only): checks out `clinic-mobile`, runs `expo prebuild`, builds a debug APK with Gradle, starts an Android API 33 emulator via `reactivecircus/android-emulator-action`, installs the APK, spins up Appium and the SUT via Docker, runs `@smoke`, and uploads an Allure report as a CI artifact.
 
+**Maestro smoke job** (`workflow_dispatch` only, ~8 min): same APK build and emulator setup as the Smoke job, but installs Maestro CLI via `get.maestro.mobile.dev` instead of Appium. No `appium driver install`, no `sleep 8` — Maestro talks directly to the emulator. Runs the 3 YAML flows in `maestro/` and uploads a JUnit XML artifact. Demonstrates the setup cost difference between the two tools on identical infrastructure.
+
 **Fastlane** wraps the most-used test commands into named lanes:
 ```bash
 bundle exec fastlane ci             # type-check + pact + ai-properties (no device)
