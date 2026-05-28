@@ -109,6 +109,8 @@ Dual-panel layout (width ≥ 600 dp — foldable / large screen):
 | `calendar-unavailable-message` | shown when no writable calendar found |
 | `booking-back-button` | back to doctors |
 
+> **Push notification (system-level, Android):** after `booking-success-message` appears, `expo-notifications` fires a local notification in the Android notification shade. No in-app testID — use `driver.openNotifications()` + `UiSelector().textContains(doctorName)` to assert. Tapping the notification navigates to `AppointmentDetailScreen` (same as deep link flow — `testID="deep-link-screen"`).
+
 ### AppointmentsScreen (patient)
 **Page marker:** `appointments-list`
 

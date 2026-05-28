@@ -29,6 +29,12 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | `@foldable` | Foldable / large-screen layout: dual-panel visible at ≥ 600 dp, fold collapses to single panel, Claude Vision layout check | `npm run test:foldable` |
 | `@feature-flag` | Feature flag routing: AI Check tab visible only when flag ON; `/health` flag state must match tab bar; graceful degradation when flag OFF | `npm run test:feature-flag` |
 | `@eu-ai-act` | EU AI Act compliance (medical AI = HIGH RISK): transparency disclosure banner, human oversight override, 6-entry golden dataset (@ondevice, deterministic), consistency 3×, graceful uncertainty | `TAGS="@eu-ai-act" npm test` |
+| `@calendar` | Calendar integration: add appointment to device calendar after booking; permission denied graceful degradation; duplicate event detection | `TAGS="@calendar" npm test` |
+| `@maps` | Maps SDK: clinic location pin shown on map; coordinates from API match display; permission handling | `TAGS="@maps" npm test` |
+| `@webview` | WebView navigation: WKWebView context switch; title assertion in DOM; WKWebView vs SFSafariViewController regression guard (@ios) | `TAGS="@webview" npm test` |
+| `@voice` | Voice AI: mic permission flow; text→AI equivalence (metamorphic); mic denied graceful degradation; noise handling | `TAGS="@voice" npm test` |
+| `@ondevice` | On-device AI differential testing: specialty detection, on-device badge, latency < 500ms, no network requests | `TAGS="@ondevice" npm test` |
+| `@notifications @android` | Push notification tap-to-navigate: booking triggers notification with doctor name; tap opens AppointmentDetailScreen; background notification delivery | `TAGS="@notifications" npm test` |
 
 ## When to run
 

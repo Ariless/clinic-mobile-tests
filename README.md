@@ -163,6 +163,12 @@ npm run test:maestro                   # Maestro smoke flows (no Appium required
 | `@self-healing` | Stale testIDs recovered via Claude Vision + W3C pointer tap | After testID renames |
 | `@foldable` | Dual-panel layout on large screen (≥ 600 dp): doctors list + booking panel side by side; fold collapses back to single panel; Claude Vision layout check | Before release / after layout changes |
 | `@feature-flag` | AI Check tab appears only when `ENABLE_AI_RECOMMENDATION=true`; environment-agnostic contract: `/health` flag state must match visible tab bar | After flag changes / before release |
+| `@calendar` | Calendar integration: booking triggers add-to-calendar flow; permission granted/denied/exists/unavailable states; event not duplicated | After calendar service changes |
+| `@maps` | Maps SDK: clinic location pin displayed with correct coordinates from API; permission handling; Android + iOS | After location data changes |
+| `@webview` | WebView rendering: title shown, HTML body accessible; WKWebView context switch; iOS regression guard against SFSafariViewController | After WebView changes |
+| `@voice` | Voice AI: mic permission flow; text and voice input produce equivalent results (metamorphic); denied mic → specific error, not crash | After voice feature changes |
+| `@ondevice` | On-device AI: local keyword recommender returns correct specialty; on-device badge visible; response < 500ms; no network call made | After on-device AI changes |
+| `@notifications @android` | Push notifications: booking fires notification with doctor name and meaningful title; tap navigates to AppointmentDetailScreen; background notification delivery | Before release / Android only |
 
 > **Maestro smoke** (`npm run test:maestro`): same 3 @smoke scenarios without an Appium server — quick sanity check after a build. Requires `brew install maestro` and `cp maestro/.env.example maestro/.env`. See [`docs/maestro-vs-appium.md`](docs/maestro-vs-appium.md) for when to use each tool.
 
