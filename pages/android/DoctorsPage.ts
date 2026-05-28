@@ -36,4 +36,13 @@ export class DoctorsPage extends BasePage {
       return false
     }
   }
+
+  async tapMapButtonForFirstDoctor(): Promise<string> {
+    await this.waitForDoctorList()
+    const items = this.findByPattern('doctor-item-.*')
+    if (await items.length === 0) throw new Error('No doctors visible on screen')
+    const id = await this.getIdFromElement(await items[0], 'doctor-item-')
+    await this.tap(`map-button-${id}`)
+    return id
+  }
 }

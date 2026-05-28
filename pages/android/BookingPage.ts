@@ -49,4 +49,26 @@ export class BookingPage extends BasePage {
   async waitForLoadingIndicator(timeoutMs = 1000): Promise<void> {
     await $(this.rid('booking-loading')).waitForDisplayed({ timeout: timeoutMs })
   }
+
+  async isAddToCalendarButtonVisible(): Promise<boolean> {
+    return this.isVisible('add-to-calendar-button')
+  }
+
+  async tapAddToCalendar(): Promise<void> {
+    await this.tap('add-to-calendar-button')
+  }
+
+  async waitForCalendarConfirmation(timeoutMs = 10000): Promise<void> {
+    await $(this.rid('calendar-added-message')).waitForDisplayed({ timeout: timeoutMs })
+  }
+
+  async getCalendarStatusText(): Promise<string> {
+    for (const id of ['calendar-added-message', 'calendar-denied-message', 'calendar-exists-message', 'calendar-unavailable-message']) {
+      try {
+        const el = this.el(id)
+        if (await el.isExisting() && await el.isDisplayed()) return el.getText()
+      } catch { /* not present */ }
+    }
+    return ''
+  }
 }

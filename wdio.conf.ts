@@ -46,7 +46,10 @@ export const config: WebdriverIO.Config = {
 
   framework: 'cucumber',
   cucumberOpts: {
-    require: ['./step-definitions/**/*.ts'],
+    require: [
+      './step-definitions/**/*.ts',
+      '../qa-portfolio-lab-course2/step-definitions/**/*.ts',
+    ],
     tagExpression: TAGS,
     timeout: 120000,
   },

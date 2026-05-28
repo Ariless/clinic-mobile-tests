@@ -17,4 +17,12 @@ export class LoginPage extends BasePageIOS {
   async getErrorMessage(): Promise<string> {
     return this.getText('login-error')
   }
+
+  async tapTermsLink(): Promise<void> {
+    await this.tap('terms-link')
+  }
+
+  async tapPrivacyLink(): Promise<void> {
+    await this.tap('privacy-link')
+  }
 }

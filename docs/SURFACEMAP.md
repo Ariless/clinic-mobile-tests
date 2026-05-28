@@ -37,6 +37,26 @@ Use `this.el('testID')` or `this.rid('testID')` — never write raw XPath in pag
 | `login-submit-button` | Log in button |
 | `login-error` | error message |
 | `login-loading` | loading indicator |
+| `terms-link` | Terms & Conditions link (opens WebViewScreen) |
+| `privacy-link` | Privacy Policy link (opens WebViewScreen) |
+
+### WebViewScreen
+**Page marker:** `webview-screen`
+Opened from LoginScreen via `terms-link` or `privacy-link`. Contains static HTML content rendered in a WebView.
+
+| testID | Element |
+|--------|---------|
+| `webview-screen` | root container |
+| `webview-title` | native header title text |
+| `webview-back-button` | back → LoginScreen |
+| `webview-content` | `react-native-webview` component (native container) |
+
+**Appium context switching:**
+- While in `NATIVE_APP` context: use `resource-id` (Android) / `~accessibility-id` (iOS) selectors for `webview-back-button`, `webview-title`
+- After `driver.switchContext(webviewCtx)`: use standard web selectors (`h1`, `body`, CSS) to assert HTML content
+- Always call `driver.switchContext('NATIVE_APP')` before interacting with native elements again
+- Android context name: `WEBVIEW_<appPackage>` (e.g. `WEBVIEW_com.anonymous.clinicmobile`)
+- iOS context name: `WEBVIEW_<numeric-id>` (dynamic — find by `startsWith('WEBVIEW')`)
 
 ### DoctorsScreen
 **Page marker:** `doctors-list`
@@ -81,6 +101,12 @@ Dual-panel layout (width ≥ 600 dp — foldable / large screen):
 | testID | Element |
 |--------|---------|
 | `booking-success-message` | confirmation message |
+| `add-to-calendar-button` | add appointment to device calendar (hidden after tapped) |
+| `add-to-calendar-loading` | activity indicator while calendar permission/write in progress |
+| `calendar-added-message` | shown after successful calendar write |
+| `calendar-denied-message` | shown when calendar permission denied |
+| `calendar-exists-message` | shown when event already exists for this appointment |
+| `calendar-unavailable-message` | shown when no writable calendar found |
 | `booking-back-button` | back to doctors |
 
 ### AppointmentsScreen (patient)

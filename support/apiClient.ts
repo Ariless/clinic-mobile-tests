@@ -83,6 +83,12 @@ export const ApiClient = {
     return doctors[0].id
   },
 
+  async getFirstDoctor(token: string): Promise<{ id: number; name: string; specialty: string; clinicAddress: string; clinicLat: number; clinicLng: number }> {
+    const doctors = await get<{ id: number; name: string; specialty: string; clinicAddress: string; clinicLat: number; clinicLng: number }[]>('/doctors', token)
+    if (!doctors.length) throw new Error('No doctors available in SUT')
+    return doctors[0]
+  },
+
   async bookFirstAvailableSlot(doctorId: number, token: string): Promise<number> {
     const slots = await this.getAvailableSlots(doctorId, token)
     if (!slots.length) throw new Error(`No available slots for doctor ${doctorId}`)
