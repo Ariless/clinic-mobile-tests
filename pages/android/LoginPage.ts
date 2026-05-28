@@ -3,8 +3,8 @@ import { BasePage } from '../abstract/BasePage'
 export class LoginPage extends BasePage {
   get pageTestID() { return '~login-title' }
 
-  async login(email: string, password: string): Promise<void> {
-    await this.waitForVisible()
+  async login(email: string, password: string, timeoutMs = 30000): Promise<void> {
+    await this.waitForVisible(timeoutMs)
     await this.typeText('login-email-input', email)
     await this.typeText('login-password-input', password)
     await this.tap('login-submit-button')

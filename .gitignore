@@ -21,6 +21,7 @@ scripts/
 skills/
 CLAUDE.md
 support/claude.ts
+support/selfHeal.ts
 jest.config.ts
 jest.tsconfig.json
 support/mitmproxy-logger.py
