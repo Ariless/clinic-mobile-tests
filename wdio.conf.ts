@@ -27,11 +27,14 @@ const iosCapabilities = {
   'appium:noReset': process.env.NO_RESET === 'true',
   'appium:newCommandTimeout': 120,
   'appium:autoAcceptAlerts': true,
+  // Without this, getContexts() may be called before WKWebView registers with
+  // the XCUITest driver — returns only NATIVE_APP and the test fails immediately.
+  'appium:webviewConnectTimeout': 5000,
 }
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
-  specs: ['./features/**/*.feature'],
+  specs: ['./features/**/*.feature', '../qa-portfolio-lab-course2/features/**/*.feature'],
   maxInstances: 1,
 
   hostname: 'localhost',
