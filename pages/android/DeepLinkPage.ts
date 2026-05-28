@@ -26,6 +26,12 @@ export class DeepLinkPage extends BasePage {
     return $(this.rid(`appointment-status-${id}`)).getText()
   }
 
+  async getAnyAppointmentStatus(): Promise<string> {
+    const el = await $('android=new UiSelector().resourceIdMatches("appointment-status-.*")')
+    await el.waitForDisplayed({ timeout: 8000 })
+    return el.getText()
+  }
+
   async waitForNotFound(timeoutMs = 10000): Promise<void> {
     await $(this.rid('deep-link-not-found')).waitForDisplayed({ timeout: timeoutMs })
   }

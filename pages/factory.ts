@@ -10,6 +10,7 @@ import type { DoctorAppointmentsPage as DoctorAppointmentsPageType } from './and
 import type { DeepLinkPage as DeepLinkPageType } from './android/DeepLinkPage'
 import type { FoldablePage as FoldablePageType } from './android/FoldablePage'
 import type { SymptomCheckerPage as SymptomCheckerPageType } from './android/SymptomCheckerPage'
+import type { NotificationPage as NotificationPageType } from './android/NotificationPage'
 
 const platform = (process.env.PLATFORM ?? 'android') as 'android' | 'ios'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -23,6 +24,8 @@ export const DoctorAppointmentsPage: typeof DoctorAppointmentsPageType = p.Docto
 export const DeepLinkPage: typeof DeepLinkPageType = p.DeepLinkPage
 export const FoldablePage: typeof FoldablePageType = p.FoldablePage
 export const SymptomCheckerPage: typeof SymptomCheckerPageType = p.SymptomCheckerPage
+// NotificationPage is Android-only — not platform-switched
+export { NotificationPage } from './android/NotificationPage'
 
 // Instance types — allow step-definitions to use page objects as type annotations
 export type LoginPage = InstanceType<typeof LoginPageType>
@@ -33,3 +36,4 @@ export type DoctorAppointmentsPage = InstanceType<typeof DoctorAppointmentsPageT
 export type DeepLinkPage = InstanceType<typeof DeepLinkPageType>
 export type FoldablePage = InstanceType<typeof FoldablePageType>
 export type SymptomCheckerPage = InstanceType<typeof SymptomCheckerPageType>
+// NotificationPage type is inferred from the re-export above — no separate type alias needed
