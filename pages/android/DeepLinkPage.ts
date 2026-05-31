@@ -27,7 +27,8 @@ export class DeepLinkPage extends BasePage {
   }
 
   async getAnyAppointmentStatus(): Promise<string> {
-    const el = await $('android=new UiSelector().resourceIdMatches("appointment-status-.*")')
+    const items = this.findByPattern('appointment-status-.*')
+    const el = await items[0]
     await el.waitForDisplayed({ timeout: 8000 })
     return el.getText()
   }

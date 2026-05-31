@@ -8,7 +8,7 @@ export class DoctorAppointmentsPage extends BasePage {
   }
 
   async confirmAppointmentById(id: string): Promise<void> {
-    // scroll to the item first — it may be below the visible viewport
+    await $(this.rid(`doctor-appointment-item-${id}`)).waitForDisplayed({ timeout: 15000 })
     await $(`android=new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(new UiSelector().resourceId("doctor-appointment-confirm-button-${id}"))`)
     await this.tap(`doctor-appointment-confirm-button-${id}`)
     await driver.waitUntil(async () => {

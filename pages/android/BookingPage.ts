@@ -12,6 +12,7 @@ export class BookingPage extends BasePage {
     const slots = this.findByPattern('slot-item-.*')
     if (await slots.length === 0) throw new Error('No available slots on screen')
     await slots[0].click()
+    await this.waitForConfirmation()
   }
 
   async waitForConfirmation(timeoutMs = 15000): Promise<void> {
@@ -23,7 +24,7 @@ export class BookingPage extends BasePage {
   }
 
   async goBack(): Promise<void> {
-    await this.tap('booking-back-button')
+    await this.tap('slots-back-button')
   }
 
   async getErrorMessage(): Promise<string> {
@@ -60,6 +61,13 @@ export class BookingPage extends BasePage {
 
   async waitForCalendarConfirmation(timeoutMs = 10000): Promise<void> {
     await $(this.rid('calendar-added-message')).waitForDisplayed({ timeout: timeoutMs })
+  }
+
+  async getFirstSlotDisplayedTime(): Promise<string> {
+    await $(this.rid('slots-list')).waitForDisplayed({ timeout: 15000 })
+    const slots = this.findByPattern('slot-time-.*')
+    if (await slots.length === 0) throw new Error('No slot-time elements visible')
+    return (await slots[0]).getText()
   }
 
   async getCalendarStatusText(): Promise<string> {

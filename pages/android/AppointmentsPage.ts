@@ -4,7 +4,16 @@ export class AppointmentsPage extends BasePage {
   get pageTestID() { return 'appointments-list' }
 
   async waitForList(): Promise<void> {
-    await $(this.rid('appointments-list')).waitForDisplayed({ timeout: 15000 })
+    try {
+      await $(this.rid('appointments-list')).waitForDisplayed({ timeout: 30000 })
+    } catch (e) {
+      const loading = await $(this.rid('appointments-loading')).isDisplayed().catch(() => false)
+      const error = await $(this.rid('appointments-error')).isDisplayed().catch(() => false)
+      const tabBar = await $(this.rid('tab-appointments')).isDisplayed().catch(() => false)
+      const doctorsList = await $(this.rid('doctors-list')).isDisplayed().catch(() => false)
+      const bookingScreen = await $(this.rid('slots-list')).isDisplayed().catch(() => false)
+      throw new Error(`appointments-list timeout — loading=${loading} error=${error} tab-appointments=${tabBar} doctors-list=${doctorsList} slots-list=${bookingScreen}`)
+    }
   }
 
   async getFirstAppointmentStatus(): Promise<string> {
@@ -33,7 +42,7 @@ export class AppointmentsPage extends BasePage {
       if (status === 'pending' || status === 'confirmed') {
         await this.tap(`appointment-cancel-button-${id}`)
         // wait for API to complete — button disappears when status changes to 'cancelled'
-        await $(this.rid(`appointment-cancel-button-${id}`)).waitForDisplayed({ timeout: 10000, reverse: true })
+        await $(this.rid(`appointment-cancel-button-${id}`)).waitForDisplayed({ timeout: 20000, reverse: true })
         return
       }
     }

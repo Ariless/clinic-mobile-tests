@@ -19,22 +19,25 @@ export abstract class BasePage {
   }
 
   protected async tap(testID: string): Promise<void> {
-    const el = this.el(testID)
-    await el.waitForDisplayed({ timeout: 8000 })
-    await el.click()
+    await this.el(testID).waitForDisplayed({ timeout: 8000 })
+    await this.el(testID).click()
   }
 
   protected async typeText(testID: string, text: string): Promise<void> {
-    const el = this.el(testID)
-    await el.waitForDisplayed({ timeout: 8000 })
-    await el.clearValue()
-    await el.setValue(text)
+    // Retry once: in RN New Architecture, onChangeText re-renders can briefly unmount
+    // the element between waitForDisplayed and setValue.
+    await this.el(testID).waitForDisplayed({ timeout: 8000 })
+    try {
+      await this.el(testID).setValue(text)
+    } catch {
+      await this.el(testID).waitForDisplayed({ timeout: 5000 })
+      await this.el(testID).setValue(text)
+    }
   }
 
   protected async getText(testID: string): Promise<string> {
-    const el = this.el(testID)
-    await el.waitForDisplayed({ timeout: 8000 })
-    return el.getText()
+    await this.el(testID).waitForDisplayed({ timeout: 8000 })
+    return this.el(testID).getText()
   }
 
   protected async isVisible(testID: string): Promise<boolean> {

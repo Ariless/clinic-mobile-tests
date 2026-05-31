@@ -3,8 +3,8 @@ import { BasePage } from '../abstract/BasePage'
 export class DoctorsPage extends BasePage {
   get pageTestID() { return 'doctors-list' }
 
-  async waitForDoctorList(): Promise<void> {
-    await $(this.rid('doctors-list')).waitForDisplayed({ timeout: 30000 })
+  async waitForDoctorList(timeoutMs = 30000): Promise<void> {
+    await $(this.rid('doctors-list')).waitForDisplayed({ timeout: timeoutMs })
   }
 
   async selectFirstDoctorAndGetName(): Promise<string> {
