@@ -147,4 +147,28 @@ export const ApiClient = {
     if (!res.ok) throw new Error(`GET /health → ${res.status}`)
     return res.json()
   },
+
+  async getAiCircuitState(): Promise<{ state: string; failures: number; openedAt: number | null }> {
+    const res = await fetch(`${BASE_URL}/api/v1/ai/circuit-state`)
+    if (!res.ok) throw new Error(`GET /ai/circuit-state → ${res.status}`)
+    return res.json()
+  },
+
+  async resetAiCircuit(): Promise<void> {
+    const res = await fetch(`${BASE_URL}/api/v1/debug/ai-circuit-control`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset' }),
+    })
+    if (!res.ok) throw new Error(`POST /debug/ai-circuit-control reset → ${res.status}`)
+  },
+
+  async forceAiCircuitOpen(): Promise<void> {
+    const res = await fetch(`${BASE_URL}/api/v1/debug/ai-circuit-control`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'open' }),
+    })
+    if (!res.ok) throw new Error(`POST /debug/ai-circuit-control open → ${res.status}`)
+  },
 }
