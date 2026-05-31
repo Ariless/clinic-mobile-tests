@@ -10,6 +10,15 @@ function simctl(command: string): string {
 }
 
 export const XCRun = {
+  isAvailable(): boolean {
+    try {
+      execSync('xcrun simctl list', { stdio: 'ignore' })
+      return true
+    } catch {
+      return false
+    }
+  },
+
   // Terminate the app process (equivalent of ADB.forceStop).
   forceStop(bundleId: string): void {
     try {
@@ -96,6 +105,16 @@ export const XCRun = {
 
   setLightMode(): void {
     simctl(`ui ${DEVICE} appearance light`)
+  },
+
+  // Enables or disables the iOS Simulator Reduce Motion accessibility setting.
+  // The app must be restarted after this call for the change to take effect.
+  setReduceMotion(enabled: boolean): void {
+    simctl(`spawn ${DEVICE} defaults write com.apple.accessibility.ReduceMotion enabled -bool ${enabled}`)
+  },
+
+  resetReduceMotion(): void {
+    simctl(`spawn ${DEVICE} defaults delete com.apple.accessibility.ReduceMotion enabled`)
   },
 
   // Return the .app bundle path for an installed app.

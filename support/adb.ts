@@ -31,6 +31,25 @@ export const ADB = {
     execSync(`adb shell pm clear ${packageName}`, { stdio: 'ignore' })
   },
 
+  // Revokes a runtime permission — simulates Android 11+ mid-session revocation.
+  // The app must handle this gracefully without crashing.
+  revokePermission(packageName: string, permission: string): void {
+    execSync(`adb shell pm revoke ${packageName} ${permission}`, { stdio: 'ignore' })
+  },
+
+  // Re-grants a runtime permission revoked by pm clear.
+  // Call before activateApp so the system dialog never blocks the UI.
+  grantPermission(packageName: string, permission: string): void {
+    execSync(`adb shell pm grant ${packageName} ${permission}`, { stdio: 'ignore' })
+  },
+
+  // Deletes only the React Native AsyncStorage SQLite file using run-as.
+  // Requires android:debuggable="true" (debug builds only).
+  // Safer than pm clear: no SystemUI ANR, no permission revocation, no Appium context loss.
+  clearAsyncStorage(packageName: string): void {
+    execSync(`adb shell run-as ${packageName} rm -f databases/RKStorage databases/RKStorage-journal`, { stdio: 'ignore' })
+  },
+
   logcat(filter?: string): string {
     const cmd = filter ? `logcat -d ${filter}` : 'logcat -d'
     return execSync(`adb ${cmd}`, { encoding: 'utf-8' })
@@ -169,7 +188,7 @@ export const ADB = {
   // Returns the Android UID (e.g. 10123) for the given package name.
   getAppUid(packageName: string): number {
     const output = execSync(`adb shell dumpsys package ${packageName}`, { encoding: 'utf-8' })
-    const match = output.match(/userId=(\d+)/)
+    const match = output.match(/\buid=(\d+)/) ?? output.match(/userId=(\d+)/)
     if (!match) throw new Error(`Could not find userId for ${packageName}`)
     return parseInt(match[1], 10)
   },
@@ -192,12 +211,13 @@ export const ADB = {
   },
 
   // Enables TalkBack screen reader via accessibility settings.
-  // After enabling, allow 2 s for TalkBack to initialise before interacting.
+  // 5 s wait: emulators need longer than physical devices for TalkBack to fully
+  // reinitialise the accessibility framework — 2 s caused ANR on slower AVDs.
   // Call disableTalkBack() in After() to ensure cleanup even on test failure.
   enableTalkBack(): void {
     adb('settings put secure enabled_accessibility_services com.google.android.marvin.talkback/com.google.android.accessibility.talkback.TalkBackService')
     adb('settings put secure accessibility_enabled 1')
-    execSync('sleep 2')
+    execSync('sleep 5')
   },
 
   disableTalkBack(): void {
@@ -282,5 +302,53 @@ export const ADB = {
   // Resets the display size to the emulator's physical resolution.
   resetDisplaySize(): void {
     adb('wm size reset')
+  },
+
+  // Sets the system font scale (1.0 = default, 2.0 = maximum on most Android versions).
+  // The app must be restarted after this call for React Native to pick up the new scale.
+  setFontScale(scale: number): void {
+    adb(`settings put system font_scale ${scale}`)
+  },
+
+  resetFontScale(): void {
+    adb('settings put system font_scale 1')
+  },
+
+  // Disables all three Android animation scale settings to simulate Reduce Motion.
+  // animator_duration_scale covers Animator-based animations; the other two cover
+  // window and activity transition animations.
+  setReduceMotion(): void {
+    adb('settings put global animator_duration_scale 0')
+    adb('settings put global transition_animation_scale 0')
+    adb('settings put global window_animation_scale 0')
+  },
+
+  resetReduceMotion(): void {
+    adb('settings put global animator_duration_scale 1')
+    adb('settings put global transition_animation_scale 1')
+    adb('settings put global window_animation_scale 1')
+  },
+
+  // Sets the device locale for i18n/RTL testing.
+  // The app must be restarted after this call for locale-sensitive layout to apply.
+  setLocale(locale: string): void {
+    execSync(`adb shell setprop persist.sys.locale ${locale}`, { encoding: 'utf-8', stdio: ['ignore', 'ignore', 'ignore'] } as Parameters<typeof execSync>[1])
+    try { adb('am broadcast -a android.intent.action.LOCALE_CHANGED') } catch { /* best-effort */ }
+  },
+
+  resetLocale(): void {
+    execSync('adb shell setprop persist.sys.locale en-US', { encoding: 'utf-8', stdio: ['ignore', 'ignore', 'ignore'] } as Parameters<typeof execSync>[1])
+    try { adb('am broadcast -a android.intent.action.LOCALE_CHANGED') } catch { /* best-effort */ }
+  },
+
+  // Sets the device timezone for date/time localisation testing.
+  // Use IANA timezone IDs (e.g. 'Asia/Tashkent' for UTC+5, 'Europe/London' for UTC±0).
+  // The app must be restarted after this call.
+  setTimezone(timezone: string): void {
+    adb(`shell settings put global time_zone ${timezone}`)
+  },
+
+  resetTimezone(): void {
+    adb('shell settings put global time_zone Europe/London')
   },
 }
