@@ -25,10 +25,14 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | `@theming` | Dark mode readability: Claude Vision checks that login, doctors list, and booking screen have no invisible or clipped content in dark mode | `npm run test:theming` |
 | `@orientation` | Portrait/landscape rotation mid-flow: booking screen and doctors list survive rotation without reset or data loss | `npm run test:orientation` |
 | `@touch-targets` | WCAG 2.5.8: all clickable elements on each screen are ≥ 44dp; failures reported with resource-id and actual dp size | `npm run test:touch-targets` |
+| `@reduce-motion` | WCAG 2.3.3: booking confirmation shows static text + icon (not animation-only); all screens navigable with animations disabled (Android: `animator_duration_scale=0`; iOS: `ReduceMotion=true`) | `TAGS="@reduce-motion" npm test` |
 | `@self-healing` | Self-healing locator resilience: stale testIDs are recovered via Claude Vision screenshot analysis and W3C pointer tap | `npm run test:self-healing` |
 | `@foldable` | Foldable / large-screen layout: dual-panel visible at ≥ 600 dp, fold collapses to single panel, Claude Vision layout check | `npm run test:foldable` |
 | `@feature-flag` | Feature flag routing: AI Check tab visible only when flag ON; `/health` flag state must match tab bar; graceful degradation when flag OFF | `npm run test:feature-flag` |
 | `@eu-ai-act` | EU AI Act compliance (medical AI = HIGH RISK): transparency disclosure banner, human oversight override, 6-entry golden dataset (@ondevice, deterministic), consistency 3×, graceful uncertainty | `TAGS="@eu-ai-act" npm test` |
+| `@circuit-breaker` | AI service circuit breaker: closed/open/half-open states; open state fails fast without timeout; half-open recovers after 2s (test env); debug control endpoint required (`ENABLE_DEBUG_ROUTES=true`) | `TAGS="@circuit-breaker" npm test` |
+| `@analytics-ab` | A/B event correctness: Group A (manual booking) → `booking_manual` in logcat; Group B (AI recommendation) → `ai_recommendation_used` + `booking_ai`; wrong events = corrupted PM data | `TAGS="@analytics-ab" npm test` |
+| `@otel` | OpenTelemetry trace propagation: mobile generates W3C `traceparent` header → SUT logs it via pino-http → Loki entry contains traceId + appointmentId + responseTime | `LOKI_ENABLED=true TAGS="@otel" npm test` |
 | `@calendar` | Calendar integration: add appointment to device calendar after booking; permission denied graceful degradation; duplicate event detection | `TAGS="@calendar" npm test` |
 | `@maps` | Maps SDK: clinic location pin shown on map; coordinates from API match display; permission handling | `TAGS="@maps" npm test` |
 | `@webview` | WebView navigation: WKWebView context switch; title assertion in DOM; WKWebView vs SFSafariViewController regression guard (@ios) | `TAGS="@webview" npm test` |
@@ -52,6 +56,7 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | Before release / after UI theme changes | `@theming` | < 5 min | No (informational) |
 | Before release / after UI layout changes | `@orientation` | < 5 min | Yes |
 | Before release / after UI changes | `@touch-targets` | < 10 min | Yes |
+| Before release / after UI changes | `@reduce-motion` | < 10 min | Yes |
 | Before release / after UI changes | `@ux-oracle` | < 10 min | No (informational) |
 | Before release / after copy changes | `@empathy` | < 10 min | No (informational) |
 | Before release / after booking flow changes | `@idempotency` | < 5 min | Yes |
@@ -60,6 +65,9 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | Before release / after layout changes | `@foldable` | < 10 min | Yes |
 | After flag changes / before release | `@feature-flag` | < 5 min | Yes |
 | Before release / after AI recommendation changes | `@eu-ai-act` | < 10 min | Yes |
+| After AI service changes / before release | `@circuit-breaker` | < 5 min | Yes |
+| After analytics instrumentation changes | `@analytics-ab` | < 5 min | Yes |
+| After observability stack changes | `@otel` | < 5 min | No (informational) |
 | Before release / after iOS build | `@security @ios` | < 5 min | Yes |
 
 ## Maestro smoke layer
@@ -128,6 +136,10 @@ ADB chaos tests are expected to have higher variance (network timing, emulator s
 | `@theming` | `ANTHROPIC_API_KEY` in `.env`; ADB access (dark mode toggle requires API 28+) |
 | `@orientation` | ADB access; `setOrientation` requires Appium capability `appium:settings[ignoreUnimportantViews]=false` or default behaviour |
 | `@touch-targets` | ADB access (`wm density` for px→dp conversion) |
+| `@reduce-motion` | ADB access (Android); `xcrun simctl` (iOS) |
+| `@circuit-breaker` | `ENABLE_DEBUG_ROUTES=true`; SUT on port 3000 |
+| `@analytics-ab` | ADB access (logcat); `ENABLE_AI_RECOMMENDATION=true` for Group B scenario |
+| `@otel` | `LOKI_ENABLED=true`; Loki on port 3100; observability stack running |
 | `@self-healing` | `ANTHROPIC_API_KEY` in `.env`; ADB access; SUT on port 3000 |
 | `@foldable` | ADB access (`wm size` requires API 28+); `ANTHROPIC_API_KEY` for `@ai` scenario |
 | `@feature-flag` | SUT on port 3000; scenario 1 is environment-agnostic; scenarios 2+3 require specific `ENABLE_AI_RECOMMENDATION` value |
@@ -161,3 +173,14 @@ npm run test:smoke
 | `mutation` | `run_mutation` | ~15 min | Stryker HTML report |
 
 All device jobs fail the pipeline on any untagged-`@flaky` failure and publish artifacts with 30-day retention.
+
+---
+
+## Compliance artifacts (не тесты — документы)
+
+| Artifact | File | Покрытие |
+|----------|------|---------|
+| OWASP Mobile Top 10 audit | `docs/security-audit.md` | M1–M10, резидуальные gaps |
+| WCAG 2.2 conformance statement | `docs/accessibility-conformance.md` | EU Accessibility Directive (planned) |
+| FDA SaMD validation package | `docs/fda-samd-validation.md` | Class II, golden dataset, bias audit, edge cases |
+| Performance budget | `docs/performance-budget.md` | cold start, jank, PSS, AI p95 |

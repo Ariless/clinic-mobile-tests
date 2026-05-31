@@ -54,7 +54,7 @@ export const config: WebdriverIO.Config = {
       '../qa-portfolio-lab-course2/step-definitions/**/*.ts',
     ],
     tagExpression: TAGS,
-    timeout: 120000,
+    timeout: 180000,
   },
 
   reporters: [

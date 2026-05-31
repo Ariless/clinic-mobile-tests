@@ -4,6 +4,30 @@ Compact index of screens, testIDs, and selector patterns.
 Read this before writing page objects or step-definitions.
 
 SUT API: same as Project 1 — see `tests/docs/SURFACEMAP.md` for full endpoint reference.
+
+### Mobile-specific SUT endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `POST /api/v1/ai/recommend-doctor` | POST | AI symptom checker |
+| `GET /api/v1/ai/circuit-state` | GET | Returns `{ state, failures, openedAt }` — circuit breaker state |
+| `POST /api/v1/debug/ai-circuit-control` | POST | `{ action: "open" \| "reset" }` — force circuit state for testing (`ENABLE_DEBUG_ROUTES=true`) |
+
+### W3C traceparent header
+
+Every mobile API call includes a `traceparent` header (W3C Trace Context format: `00-{traceId:32hex}-{spanId:16hex}-01`).  
+SUT logs it via pino-http `customProps` — appears in every Loki entry alongside domain events.  
+Mobile logs `[trace] {traceparent} METHOD /path` to console (readable via `ADB.logcat()`).
+
+### Analytics events (logcat)
+
+Mobile fires `console.log('[analytics]', event)` at key user actions — readable via `ADB.logcat()`.
+
+| Event | When fired |
+|-------|-----------|
+| `booking_manual` | Booking confirmed — doctor selected from DoctorsScreen |
+| `booking_ai` | Booking confirmed — doctor selected from AI recommendation |
+| `ai_recommendation_used` | AI symptom checker returns a result |
 App: React Native (Expo) · Appium 3.x · WebdriverIO 9.x
 
 ---
@@ -39,6 +63,10 @@ Use `this.el('testID')` or `this.rid('testID')` — never write raw XPath in pag
 | `login-loading` | loading indicator |
 | `terms-link` | Terms & Conditions link (opens WebViewScreen) |
 | `privacy-link` | Privacy Policy link (opens WebViewScreen) |
+| `biometric-login-button` | biometric login button (visible only when hardware enrolled + prior token) |
+| `biometric-fallback-notice` | notice shown after 3 failed biometric attempts |
+
+**Biometric test hook:** `EXPO_PUBLIC_TEST_BIOMETRIC=success|fail|unavailable` — baked at build time. `success` → immediate login; `fail` → each tap increments failure counter; `unavailable` → button never renders. Requires APK built with the appropriate value.
 
 ### WebViewScreen
 **Page marker:** `webview-screen`
@@ -74,6 +102,7 @@ Single-panel layout (width < 600 dp):
 | `doctor-item-{id}` | doctor card touchable (dynamic) |
 | `doctor-name-{id}` | doctor name text (dynamic) |
 | `doctor-specialty-{id}` | doctor specialty text (dynamic) |
+| `map-button-{id}` | open ClinicMapScreen for this doctor (dynamic) |
 
 Dual-panel layout (width ≥ 600 dp — foldable / large screen):
 
@@ -100,6 +129,7 @@ Dual-panel layout (width ≥ 600 dp — foldable / large screen):
 ### BookingScreen — success state
 | testID | Element |
 |--------|---------|
+| `booking-success-icon` | ✓ checkmark — static visual indicator (WCAG 2.3.3 Reduce Motion: confirms booking without relying on animation) |
 | `booking-success-message` | confirmation message |
 | `add-to-calendar-button` | add appointment to device calendar (hidden after tapped) |
 | `add-to-calendar-loading` | activity indicator while calendar permission/write in progress |
@@ -153,6 +183,42 @@ Opened via `clinic://appointment/:id` URI scheme. Fetches single appointment by 
 | `deep-link-not-found` | error state — 404 or any fetch error |
 | `deep-link-back` | back button → navigates to My Appointments tab |
 
+### QRScannerScreen
+**Page marker:** `qr-scanner-screen`
+**Access:** tapping `qr-scan-button` on AppointmentsScreen (My Visits tab). Navigates to AppointmentDetailScreen after a successful scan.
+
+| testID | Element |
+|--------|---------|
+| `qr-scanner-screen` | root container |
+| `qr-back-button` | back → AppointmentsScreen |
+| `qr-camera-placeholder` | placeholder text (no real camera in test builds) |
+
+**How tests simulate a scan:** tap `qr-scan-button` → wait for `qr-scanner-screen` → call `ADB.openDeepLink('clinic://appointment/{id}')` → App.tsx's Linking listener fires `handleQRResult` → navigates to AppointmentDetailScreen.
+
+**QR test hook:** `EXPO_PUBLIC_TEST_QR_VALUE=clinic://appointment/123` — when baked at build time, `QRScannerScreen` immediately calls `onResult` on mount (same pattern as `EXPO_PUBLIC_TEST_VOICE_TEXT`). Tests prefer the ADB approach to avoid needing a special build.
+
+---
+
+### ClinicMapScreen
+**Page marker:** `map-screen`
+**Page object:** `ClinicMapPage` — `waitForScreen()`, `getAddressText()`, `isAddressVisible()`, `tapDirections()`, `isScreenVisible()`, `goBack()`
+**Access:** tapping `map-button-{id}` on DoctorsScreen
+
+| testID | Element |
+|--------|---------|
+| `map-screen` | root container |
+| `map-back-button` | back → DoctorsScreen |
+| `map-container` | MapView wrapper (present only when AIRMap native module is available) |
+| `map-unavailable` | empty view shown when Maps SDK is unavailable on the device |
+| `clinic-address-text` | doctor's clinic address string |
+| `clinic-coords-text` | lat/lng coordinates string |
+| `directions-button` | opens geo-intent (Google Maps / system maps app) |
+
+**Notes:**
+- Map availability checked once at mount via `NativeModules.AIRMap` — no Error Boundary, no runtime re-render on failure
+- After tapping `directions-button`, the geo-intent may open an external app; use `driver.activateApp()` to return to clinic-mobile before asserting `map-screen`
+- `clinic-address-text` and `clinic-coords-text` are always present regardless of map availability
+
 ### SymptomCheckerScreen
 **Page marker:** `symptom-input`
 **Page object:** `SymptomCheckerPage` — `submitSymptoms()`, `waitForResultOrError()`, `isResultVisible()`, `isErrorVisible()`
@@ -201,6 +267,7 @@ Opened via `clinic://appointment/:id` URI scheme. Fetches single appointment by 
 | `doctor-appointment-complete-button-{id}` | doctor complete (scroll required) |
 | `doctor-appointment-cancel-button-{id}` | doctor cancel (scroll required) |
 | `doctor-appointment-status-{id}` | appointment status in doctor view |
+| `map-button-{id}` | open ClinicMapScreen for this doctor (DoctorsScreen) |
 
 ---
 
@@ -239,8 +306,28 @@ Patient accounts created via `ApiClient` in `Before()` hook, deleted in `After()
 | `ENABLE_AI_RECOMMENDATION=true` | enables symptom checker endpoint |
 | `AI_MOCK_RESPONSE=true` | deterministic AI response, no API key needed |
 | `LOKI_ENABLED=true` | enables observability tests |
+| `CIRCUIT_BREAKER_THRESHOLD=2` | failures before circuit opens (default 3; override to 2 in test env) |
+| `CIRCUIT_BREAKER_RECOVERY_MS=2000` | ms before half-open (default 30 000; override to 2000 in test env) |
+| `ENABLE_DEBUG_ROUTES=true` | enables `/api/v1/debug/*` endpoints including `ai-circuit-control` |
 | `PLATFORM=android` | default; selects `pages/android/` via factory |
 | `PLATFORM=ios` | selects `pages/ios/` via factory |
+| `EXPO_PUBLIC_TEST_QR_VALUE=clinic://appointment/{id}` | QR scanner immediately fires result on mount (baked at build time) |
+| `EXPO_PUBLIC_TEST_BIOMETRIC=success\|fail\|unavailable` | controls biometric result in LoginScreen (baked at build time) |
+
+---
+
+## Locale testing
+
+Tests that change the device locale use ADB helpers — no special APK build required.
+
+| Helper | Command | Restore |
+|--------|---------|---------|
+| `ADB.setLocale('ar-EG')` | RTL layout tests (`@rtl`) | `ADB.resetLocale()` |
+| `ADB.setLocale('de-DE')` | String overflow tests (`@string-overflow`) | `ADB.resetLocale()` |
+
+**Pattern:** `Before` hook sets locale + force-stops + reopens app + `browser.pause(5000)` (React Native requires a restart to pick up locale). `After` hook calls `ADB.resetLocale()`. The `Given` step in the feature file is documentation-only (locale is already applied by the time it runs).
+
+**Why restart is required:** React Native reads locale once at startup via the native bridge. `setprop persist.sys.locale` takes effect on the next launch, not on the running app.
 
 ---
 

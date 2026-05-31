@@ -40,7 +40,14 @@
     "test:foldable": "TAGS=@foldable wdio run wdio.conf.ts",
     "test:feature-flag": "TAGS=@feature-flag wdio run wdio.conf.ts",
     "test:maestro": "maestro test maestro/ --env-file maestro/.env",
-    "test:maps": "TAGS=@maps wdio run wdio.conf.ts"
+    "test:maps": "TAGS=@maps wdio run wdio.conf.ts",
+    "test:qr": "TAGS=@qr wdio run wdio.conf.ts",
+    "test:biometrics": "TAGS=@biometrics wdio run wdio.conf.ts",
+    "test:string-overflow": "TAGS=@string-overflow wdio run wdio.conf.ts",
+    "test:pairwise": "TAGS=@pairwise wdio run wdio.conf.ts",
+    "test:contrast": "TAGS=@contrast wdio run wdio.conf.ts",
+    "test:event-chain": "TAGS=@event-chain wdio run wdio.conf.ts",
+    "test:datetime-locale": "TAGS=@datetime-locale wdio run wdio.conf.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",

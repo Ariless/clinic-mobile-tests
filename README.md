@@ -51,9 +51,9 @@ clinic-mobile-tests/
     ios/                       # iOS locators: accessibility id via XCUITest (mirrors android/)
     factory.ts                 # Picks android/ or ios/ at runtime from PLATFORM env var
   support/
-    adb.ts                     # ADB helpers: disableWifi(), enableWifi(), logcat(), coldStart(), resetGfxinfo(), parseJankRate(), isInstalled(), pullApkManifestXml(), enterDozeMode(), exitDozeMode(), setDisplaySize(), resetDisplaySize()
+    adb.ts                     # ADB helpers: disableWifi(), enableWifi(), logcat(), coldStart(), resetGfxinfo(), parseJankRate(), isInstalled(), pullApkManifestXml(), enterDozeMode(), exitDozeMode(), setDisplaySize(), resetDisplaySize(), setFontScale(), resetFontScale(), setLocale(), resetLocale(), revokePermission(), grantPermission()
     xcrun.ts                   # iOS mirror: forceStop(), coldStart(), getLog(), setTimezone(), enrollBiometric(), screenshot()
-    claude.ts                  # Claude Vision helpers: compareScreenshot(), auditA11y(), evaluateUX(), evaluateLayout()
+    claude.ts                  # Claude Vision helpers: compareScreenshot(), auditA11y(), evaluateUX(), evaluateLayout(), evaluateReadability(), evaluateMicrocopy(), analyzeJourneyFriction(), evaluateFontScaleLayout(), evaluateRtlLayout(), evaluateEmptyState()
   pact/
     mobile.pact.consumer.test.ts  # Consumer contract: clinic-mobile → clinic-booking-api (6 interactions)
     tsconfig.json              # IDE type support for pact/ (Jest uses jest.tsconfig.json at root)
@@ -132,6 +132,9 @@ npm run test:orientation               # @orientation — portrait/landscape rot
 npm run test:touch-targets             # @touch-targets — WCAG 2.5.8: all clickable elements ≥ 44dp
 npm run test:foldable                  # @foldable — dual-panel layout on large screen / foldable device
 npm run test:feature-flag              # @feature-flag — AI tab visibility matches ENABLE_AI_RECOMMENDATION flag
+npm run test:qr                        # @qr — QR code scan via ADB deep link: valid / offline / cancelled appointment
+npm run test:biometrics                # @biometrics — biometric login: success / 3×fail→fallback / unavailable (requires matching APK build)
+npm run test:string-overflow           # @string-overflow — de-DE locale: no truncated labels or overflowing buttons (requires ANTHROPIC_API_KEY)
 npm run test:pact                      # consumer contract tests (Jest, no device required)
 npm run test:ai-properties             # property-based + statistical + SLA tests (Jest, no device, needs SUT + ENABLE_AI_RECOMMENDATION=true)
 npm run test:maestro                   # Maestro smoke flows (no Appium required — needs maestro CLI)
