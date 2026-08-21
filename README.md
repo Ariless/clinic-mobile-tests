@@ -12,7 +12,7 @@ Appium captures a screenshot; Claude evaluates it semantically — _"does this s
 A single `.feature` file drives both patient and doctor simultaneously. Patient books on mobile → doctor confirms on mobile → patient sees `confirmed` badge without refreshing. Cross-role state machine testing on a real device — not mocked.
 
 **ADB chaos as a test pattern.**
-`adb shell svc wifi disable` inside a booking scenario, background/foreground transitions mid-flow, force-stop and reopen. Mobile equivalent of chaos engineering from Project 1 — testing the environment, not just the buttons.
+`adb shell cmd connectivity airplane-mode enable` inside a booking scenario, background/foreground transitions mid-flow, force-stop and reopen. Mobile equivalent of chaos engineering from Project 1 — testing the environment, not just the buttons. (`svc wifi disable` is the command everyone reaches for first; it leaves the emulator's route to the host up, so the scenario stays online while the test looks convincing.)
 
 **Non-deterministic systems testing methodology.**
 A non-deterministic system can't be tested with deterministic assertions. The suite uses four techniques in parallel: property-based (fast-check invariants over random inputs), metamorphic (rephrasing/irrelevance relations), statistical distribution (≥8/10 threshold), and bounded SLA (p95 latency, response size, reasoning relevance). Layer matters: iteration-heavy tests run at API level via Jest; visible-state tests run via Appium/Cucumber.

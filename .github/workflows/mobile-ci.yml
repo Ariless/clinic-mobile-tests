@@ -66,8 +66,14 @@ jobs:
       - name: AI property tests
         run: npm run test:ai-properties
 
+      # The presence check lives in `if:`, not in the shell. It used to read
+      #   [ -f jest.helpers.config.ts ] && npm run test:helpers || echo "Skipping: … not present"
+      # where `||` caught the non-zero exit of a failing run: three broken suites reported as
+      # "Skipping: jest.helpers.config.ts not present" while the file sat right there, and the job
+      # went green. Fixed 2026-08-21. hashFiles() is empty only when the file genuinely is missing.
       - name: Helper unit tests
-        run: '[ -f jest.helpers.config.ts ] && npm run test:helpers || echo "Skipping: jest.helpers.config.ts not present"'
+        if: hashFiles('jest.helpers.config.ts') != ''
+        run: npm run test:helpers
 
   # ── Mutation testing — workflow_dispatch only (slow: runs test suite per mutation) ──
   mutation:

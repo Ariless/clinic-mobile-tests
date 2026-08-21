@@ -176,18 +176,22 @@ describe('ADB — getDisplayDensity()', () => {
 })
 
 describe('ADB — command wrappers', () => {
-  it('disableWifi sends wifi disable command', () => {
+  // These two asserted `svc wifi disable`/`enable` until 2026-08-21. The helper had already moved
+  // to `cmd connectivity airplane-mode`, because svc wifi leaves the 10.0.2.2 host route up on an
+  // emulator — the offline scenario stayed online while the test stayed green about the wrong
+  // command. Assert the connectivity path the code actually takes.
+  it('disableWifi cuts connectivity through airplane mode', () => {
     ADB.disableWifi()
     expect(mockExecSync).toHaveBeenCalledWith(
-      expect.stringContaining('svc wifi disable'),
+      expect.stringContaining('cmd connectivity airplane-mode enable'),
       expect.any(Object),
     )
   })
 
-  it('enableWifi sends wifi enable command', () => {
+  it('enableWifi restores connectivity through airplane mode', () => {
     ADB.enableWifi()
     expect(mockExecSync).toHaveBeenCalledWith(
-      expect.stringContaining('svc wifi enable'),
+      expect.stringContaining('cmd connectivity airplane-mode disable'),
       expect.any(Object),
     )
   })

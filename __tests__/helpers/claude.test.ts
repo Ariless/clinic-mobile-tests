@@ -3,7 +3,12 @@
 // at which point mockCreate is already initialised).
 const mockCreate = jest.fn()
 
+// __esModule: true is required, not decorative: support/claude.ts does `import Anthropic from`,
+// which ts-jest compiles to an interop call. Without the flag the interop wraps the whole mock
+// object as the default export, `new Anthropic()` resolves to a plain object and the suite dies
+// with "sdk_1.default is not a constructor" before a single assertion runs. Added 2026-08-21.
 jest.mock('@anthropic-ai/sdk', () => ({
+  __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     messages: { create: mockCreate },
   })),
