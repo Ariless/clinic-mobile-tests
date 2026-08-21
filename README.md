@@ -1,7 +1,7 @@
 # clinic-mobile-tests
 
-Appium test suite for [clinic-mobile](../clinic-mobile) — a React Native clinic booking app.
-Tests the same SUT as [clinic-booking-api-tests](../tests) but at the mobile layer, where device-level behaviour can't be reached by API or browser tests.
+Appium test suite for [clinic-mobile](https://github.com/Ariless/clinic-mobile) — a React Native clinic booking app.
+Tests the same SUT as [clinic-booking-api-tests](https://github.com/Ariless/clinic-booking-api-tests) but at the mobile layer, where device-level behaviour can't be reached by API or browser tests.
 
 ## What makes this different
 
@@ -18,25 +18,31 @@ A single `.feature` file drives both patient and doctor simultaneously. Patient 
 A non-deterministic system can't be tested with deterministic assertions. The suite uses four techniques in parallel: property-based (fast-check invariants over random inputs), metamorphic (rephrasing/irrelevance relations), statistical distribution (≥8/10 threshold), and bounded SLA (p95 latency, response size, reasoning relevance). Layer matters: iteration-heavy tests run at API level via Jest; visible-state tests run via Appium/Cucumber.
 
 **AI exploration vs contract testing.**
-`pact/mobile.pact.consumer.test.ts` formalises the mobile app's contract with the API — field names, types, status codes — and runs in CI without a device. Playwright MCP can discover what fields the API actually returns in a live session; the Pact file locks that discovery down so regressions are caught automatically. See [`../tests/docs/mcp-demo.md`](../tests/docs/mcp-demo.md) for the comparison scenario.
+`pact/mobile.pact.consumer.test.ts` formalises the mobile app's contract with the API — field names, types, status codes — and runs in CI without a device. Playwright MCP can discover what fields the API actually returns in a live session; the Pact file locks that discovery down so regressions are caught automatically. See [`../tests/docs/mcp-demo.md`](https://github.com/Ariless/clinic-booking-api-tests/blob/main/docs/mcp-demo.md) for the comparison scenario.
 
 ## Architecture
 
 ```
 clinic-mobile-tests/
-  features/                    # Cucumber .feature files — no platform knowledge
-    booking.feature
-    cross-role.feature
-    chaos.feature
-    ai-recommend.feature         # Claude Vision + a11y audit (no device AI needed)
-    ux-oracle.feature            # Claude UX oracle: rates screen completeness from patient's perspective (1–5)
-    empathy.feature              # Empathy testing: Claude rates patient-facing messages for medical-grade communication (1–5)
-    symptom-checker.feature      # AI symptom checker: invariants, graceful degradation, adversarial, confused patient
-    security.feature
-    performance.feature
-    foldable.feature             # Foldable/large-screen: dual-panel layout, fold collapse, Claude Vision layout check
-    feature-flag.feature        # Feature flag routing: AI tab visible only when ENABLE_AI_RECOMMENDATION=true; /health contract
-    eu-ai-act.feature           # EU AI Act compliance (HIGH RISK medical AI): transparency, human oversight, golden dataset, consistency
+  features/                    # 49 Cucumber .feature files — no platform knowledge in any of them.
+                               # Grouped below by what they interrogate; the directory is the full list.
+    # Core journeys
+    booking · cross-role · integration · state-transitions · deep-link · calendar · maps · qr-scan
+    # AI behaviour and compliance
+    ai-recommend      # Claude Vision + a11y audit (no on-device AI needed)
+    symptom-checker   # invariants, graceful degradation, adversarial input, confused patient
+    ux-oracle         # Claude rates screen completeness from the patient's perspective (1–5)
+    empathy           # Claude rates patient-facing messages for medical-grade communication (1–5)
+    microcopy · friction · voice-ai · ondevice-ai
+    eu-ai-act         # EU AI Act, HIGH RISK medical AI: transparency, human oversight, golden dataset
+    # Environment as part of the system
+    chaos · offline · doze · battery · memory · permissions · push-notifications · webview
+    circuit-breaker · n-plus-one · idempotency · event-chain · self-healing
+    # Device surface and rendering
+    foldable · orientation · font-scale · theming · rtl · contrast · touch-targets · a11y
+    string-overflow · reduce-motion · empty-states · datetime-locale
+    # Cross-cutting
+    security · performance · observability · otel-trace · analytics-ab · feature-flag · pairwise
   step-definitions/            # Cucumber step implementations — steps are global across all files
     foldable.steps.ts           # @foldable; defines shared "I am logged in as a patient" step (used by all features)
     feature-flag.steps.ts       # @feature-flag; environment-agnostic /health ↔ tab-bar contract assertion
@@ -95,7 +101,7 @@ PLATFORM=ios npm test
   npm install -g appium
   appium driver install uiautomator2
   ```
-- clinic-mobile APK installed on the emulator (see [clinic-mobile setup](../clinic-mobile/README.md))
+- clinic-mobile APK installed on the emulator (see [clinic-mobile setup](https://github.com/Ariless/clinic-mobile/blob/main/README.md))
 - SUT running on host machine: `cd ../sut && npm run dev` (port 3000)
 - For AI Vision patterns (`ai-recommend.feature`): `ANTHROPIC_API_KEY` in `.env`
 - For symptom checker patterns (`symptom-checker.feature`): set `ENABLE_AI_RECOMMENDATION=true` in `.env`; SUT must run with the same flag. `AI_MOCK_RESPONSE=true` on the SUT lets you test without a real API key.
@@ -205,10 +211,10 @@ bundle exec fastlane maestro_smoke  # Maestro 3-flow smoke (no Appium, needs mae
 
 | Repo | Role |
 |------|------|
-| [clinic-mobile](../clinic-mobile) | React Native app under test |
-| [sut](../sut) | Backend API (Node.js + SQLite) |
+| [clinic-mobile](https://github.com/Ariless/clinic-mobile) | React Native app under test |
+| [sut](https://github.com/Ariless/clinic-booking-api) | Backend API (Node.js + SQLite) |
 
 ## Related projects
 
-- [clinic-booking-api-tests](../tests) — API, E2E, and UI tests for the same backend
-- Test strategy and portfolio narrative: [`tests/docs/TEST_STRATEGY.md`](../tests/docs/TEST_STRATEGY.md)
+- [clinic-booking-api-tests](https://github.com/Ariless/clinic-booking-api-tests) — API, E2E, and UI tests for the same backend
+- Test strategy and portfolio narrative: [`docs/TEST_STRATEGY.md` in clinic-booking-api-tests](https://github.com/Ariless/clinic-booking-api-tests/blob/main/docs/TEST_STRATEGY.md) — a separate repository, so the relative link this line used to carry only resolved on a machine with both checked out side by side
