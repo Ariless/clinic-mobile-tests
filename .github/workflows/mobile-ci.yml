@@ -48,11 +48,23 @@ jobs:
       - name: Pact consumer tests
         run: npm run test:pact
 
+      # These properties are exercised against a live SUT, which this job does not
+      # start — the SUT lives in a private repository and is not checked out here.
+      # The env vars used to be set to "true" regardless, which switched the tests
+      # on and left them fetching an address nothing was listening on: eight
+      # failures that said "fetch failed" rather than "no server".
+      #
+      # AI_MOCK_RESPONSE is a mode of the *server*, not of the test — it makes the
+      # SUT answer without calling Claude. It cannot substitute for the server
+      # being absent.
+      #
+      # Left unset on purpose: ai.properties.test.ts guards on
+      # ENABLE_AI_RECOMMENDATION and skips cleanly, so the report says "skipped"
+      # instead of showing a red suite for a missing dependency. Run them locally
+      # against a running SUT with:
+      #   ENABLE_AI_RECOMMENDATION=true npm run test:ai-properties
       - name: AI property tests
         run: npm run test:ai-properties
-        env:
-          ENABLE_AI_RECOMMENDATION: "true"
-          AI_MOCK_RESPONSE: "true"
 
       - name: Helper unit tests
         run: '[ -f jest.helpers.config.ts ] && npm run test:helpers || echo "Skipping: jest.helpers.config.ts not present"'
