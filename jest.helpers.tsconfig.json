@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "@types/jest"]
+  },
+  "include": [
+    "pages/abstract/*.ts",
+    "support/adb.ts",
+    "support/claude.ts",
+    "__tests__/helpers/**/*.ts"
+  ]
+}

@@ -88,7 +88,7 @@ Test cases are derived from the model, not from intuition. Any transition not li
 ## Relationship to existing tests
 
 The same state machine is tested at the API layer in `clinic-booking-api-tests`:
-- `appointments.confirm.test.ts` — pending → confirmed
+- `appointments.confirm.j3.test.ts` — pending → confirmed
 - `appointments.cancel.patient.test.ts` — pending/confirmed → cancelled
 - `appointmentStateMachine.test.js` (SUT unit tests, Stryker 92%) — all transitions + invalid guard
 

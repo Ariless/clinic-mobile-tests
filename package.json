@@ -33,6 +33,7 @@
     "test:ondevice-ai": "TAGS=@ondevice-ai wdio run wdio.conf.ts",
     "test:pact": "jest --testPathPattern=pact --passWithNoTests",
     "test:ai-properties": "jest --testPathPattern=ai-properties --passWithNoTests",
+    "test:differential": "jest --testPathPattern=differential --passWithNoTests",
     "test:helpers": "jest --config jest.helpers.config.ts --passWithNoTests",
     "test:mutation": "stryker run",
     "perf:report": "node scripts/perf-report.js",

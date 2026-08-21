@@ -1,0 +1,204 @@
+# Mobile Testing Insights — clinic-mobile SUT
+
+Два типа знания которые появились при построении мобильного тест-фреймворка.
+
+Первый — дизайн-решения: что и почему устроено именно так.
+Второй — платформенные ловушки: что узнали об инструментах и iOS/Android при написании тестов.
+
+---
+
+## Часть 1 — Дизайн-решения фреймворка
+
+### 1. Factory pattern для cross-platform page objects
+
+**Что:** `pages/` разбита на `android/` и `ios/`, переключение через `PLATFORM` env var. Каждый Page Object создаётся через factory, не импортируется напрямую.
+
+**Почему именно так:** первая версия была "архитектурой без проводки" — `PLATFORM=ios` существовал, `pages/ios/` существовала, README описывал кросс-платформенность. Но все step-definitions импортировали `from '../pages/android/LoginPage'` хардкодом. `PLATFORM=ios npm test` запускал Android page objects на iOS Simulator — элементы не находились, тесты падали с timeout. Фикс: factory pattern + barrel-файлы.
+
+**Урок:** env var без кода который его читает = документация, не фича. Обнаруживается только при реальном запуске на целевой платформе.
+
+---
+
+### 2. Local notifications vs FCM — осознанный выбор архитектуры
+
+**Что:** push notifications реализованы через `expo-notifications` с локальными уведомлениями (не FCM). Нотификация о бронировании показывается сразу после `POST /appointments` — без сервера, без токенов, без Firebase.
+
+**Почему не FCM:** FCM требует реального Firebase проекта, регистрации FCM-токенов на сервере, APNs-сертификатов и отдельного delivery слоя. Для portfolio SUT это инфраструктурные затраты несоразмерные с тем что они тестируют.
+
+**Что тестируется локальными нотификациями:** тот же Android notification shade (`driver.openNotifications()`), тот же `addNotificationResponseReceivedListener`, та же навигация в `AppointmentDetailScreen`. Appium-тест не знает и не должен знать откуда пришло уведомление — локально или через FCM.
+
+**Что НЕ тестируется:** доставка в Doze mode (FCM high-priority bypass), background push при закрытом приложении, server-side delivery гарантии. Для production эти слои нужны — для portfolio демонстрации паттерна тестирования не нужны.
+
+**Правило:** тест должен быть дешевле бага который он находит. Локальные нотификации покрывают паттерн tap-to-navigate полностью — FCM добавил бы инфраструктуру, но не добавил бы новый класс проверок.
+
+**Что это значит для студента:** не "не умеем FCM" — "знаем где граница между тестированием паттерна и тестированием инфраструктуры доставки".
+
+---
+
+## Часть 2 — Платформенные ловушки
+
+### 3. iOS Simulator ≠ Android Emulator по сетевой архитектуре
+
+**Что:** chaos-тест с замедлением сети работает по-разному на Android и iOS.
+
+**Android:** ADB делает `tc netem delay` внутри эмулятора — инжектирует задержку в сетевой стек самого эмулятора. Автоматизируется одним вызовом.
+
+**iOS:** iOS Simulator использует сетевой стек хост-машины (Mac). `simctl` не может инжектировать задержку программно. Нужен Network Link Conditioner (Additional Tools for Xcode) или `pfctl` с sudo. Chaos-тест с сетевой задержкой на iOS — ручная конфигурация, не автоматизируется из кода.
+
+**Почему это не баг инструмента:** это архитектурное решение Apple. Android Emulator — изолированная ОС со своим сетевым стеком. iOS Simulator — процесс на Mac, использующий хостовую сеть. Разные архитектуры → разные возможности автоматизации.
+
+---
+
+### 4. Асимметрия error UI: один паттерн не работает для двух экранов
+
+**Что:** `DoctorsScreen` и `AppointmentsScreen` используются по одному паттерну в тестах. При добавлении API stubs обнаружилась асимметрия.
+
+**Детали:** `DoctorsScreen` при 503 делает early return — `doctors-list` вообще не рендерится, тест получает timeout. `AppointmentsScreen` рендерит ошибку inline — `appointments-list` рендерится пустым рядом с текстом ошибки, тест проходит. Один паттерн stub теста, одна helper функция — разное поведение.
+
+**Почему это важно:** асимметрия не видна при code review, не видна в happy path тестах. Видна только при stub тестах которые принудительно вводят экран в error state. Это аргумент в пользу integration layer: без stub тестов этот класс расхождений невидим.
+
+---
+
+### 5. Стейл UI после Doze: баг в промежутке между тремя слоями
+
+**Что:** после Android Doze mode UI показывает старый статус записи, хотя в базе данных уже новый.
+
+**Механизм:** три слоя, на каждом всё корректно:
+- Android OS lifecycle: `AppState` event не стреляет надёжно после Doze exit
+- React Native cache (`cache.ts`): не инвалидируется при foreground после Doze
+- UI: показывает что в кеше, не что в базе
+
+**Почему API тест не поймает:** `PATCH → GET → assert "confirmed"` — всё зелёно. Баг живёт в оркестрации слоёв, не в каждом слое отдельно.
+
+**Почему нужен именно этот тест:** воспроизвести Doze программно без `adb shell dumpsys deviceidle force-idle` невозможно — Doze на эмуляторе не активируется при подключении. Только конкретный ADB команда + API + UI assertion воспроизводит реальный сценарий пользователя.
+
+---
+
+### 6. WKWebView vs SFSafariViewController — почему context switch работает только в одном случае
+
+**Что изменили:** добавили `'appium:webviewConnectTimeout': 5000` в iOS capabilities + iOS-специфичный сценарий `@ios @webview` как regression guard.
+
+**Почему `webviewConnectTimeout` обязателен:** без него `driver.getContexts()` вызывается сразу после `activateApp()`. WKWebView ещё не зарегистрировал себя в XCUITest driver — список возвращает только `NATIVE_APP`. Тест падает с `No WEBVIEW context appeared`, хотя с задержкой 2–5 секунд работал бы корректно. Это race condition, не баг логики.
+
+**WKWebView (react-native-webview):** работает внутри процесса приложения. Appium получает доступ через WebKit Debug Protocol. `getContexts()` возвращает `['NATIVE_APP', 'WEBVIEW_<pid>']`. Context switch → DOM доступен через CSS/XPath селекторы.
+
+**SFSafariViewController:** работает в отдельном системном процессе. Apple намеренно изолирует его из соображений безопасности. `getContexts()` возвращает только `['NATIVE_APP']` — Appium не видит Safari процесс. Любой тест который пытается переключиться упадёт с timeout.
+
+**Regression guard:** если разработчик заменит `react-native-webview` на `Linking.openURL()` (открывает внешний браузер) или на `SafariView` (SFSafariViewController), сценарий `iOS WKWebView context is accessible` упадёт на `expect(ctxName).toMatch(/^WEBVIEW_/)`. Это ловится на CI до релиза, не в App Store review.
+
+**Правило:** тест который проверяет что context switch работает = тест который защищает от непреднамеренной смены реализации WebView.
+
+---
+
+### 7. Reduce Motion: анимация как единственный индикатор успеха — паттерн который пропускают
+
+**Контекст:** WCAG 2.3.3 и EU Accessibility Act требуют что приложения для людей с вестибулярными расстройствами (мигрень, BPPV) не используют движение как единственный способ передать информацию.
+
+**Что проверяет тест:** экран подтверждения бронирования (`BookingScreen — success state`) показывает статический текст **и** иконку — не полагается на анимацию fade-in или Lottie checkmark как единственный сигнал успеха.
+
+**Механизм тестирования:**
+- Android: `adb shell settings put global animator_duration_scale 0` (+ `transition_animation_scale`, `window_animation_scale`) — все три шкалы системных анимаций в ноль
+- iOS: `xcrun simctl spawn booted defaults write com.apple.accessibility.ReduceMotion enabled -bool true`
+- Оба требуют рестарта приложения чтобы настройка применилась
+
+**Что обнаружилось при разработке теста:** в React Native `animator_duration_scale=0` влияет на нативные Activity transitions, но НЕ на JS-based анимации (`Animated` API, `react-native-reanimated`). Приложение не использовало ни те ни другие — это само по себе правильное решение. Тест стал regression guard: если разработчик добавит Lottie checkmark как замену статическому тексту, тест упадёт на `booking-success-icon not found`.
+
+**Почему медицинский контекст делает этот паттерн обязательным:** пациент с мигренью использует приложение именно тогда, когда анимация может спровоцировать симптомы. Успешное бронирование должно быть читаемо без каких-либо движущихся элементов.
+
+---
+
+### 8. Circuit breaker: тестировать три состояния, не одно
+
+**Что:** AI-сервис падает → circuit breaker открывается. Большинство тестируют только "сервис упал → ошибка". Реальный паттерн — три состояния: closed (норма), open (fast fail без таймаута), half-open (recovery).
+
+**Почему half-open критично:** open state защищает от каскадных падений. Half-open проверяет что система восстанавливается. Без теста half-open можно случайно сломать recovery логику — circuit останется open навсегда.
+
+**Mobile-специфика:** в open state мобильное приложение должно получить ошибку немедленно (< 2 сек), а не ждать 30-секундный таймаут AI-вызова. Тест на `waitForError(3000)` ловит регрессию если кто-то убирает fast-fail.
+
+**Как тестировать без Docker:** debug endpoint `POST /api/v1/debug/ai-circuit-control` с `{ action: "open" }` форсирует состояние. Recovery timeout 30s → 2s через `CIRCUIT_BREAKER_RECOVERY_MS=2000` в test env.
+
+---
+
+### 9. Analytics A/B: тест корректности событий важнее теста наличия
+
+**Контекст:** A/B тест с feature flag. Группа A (без AI) → `booking_manual`. Группа B (с AI) → `ai_recommendation_used` + `booking_ai`. Если события перепутаны — PM принимает решения на неправильных данных.
+
+**Паттерн:** `console.log('[analytics]', event)` + `ADB.logcat()` — нет внешней аналитической инфраструктуры, тест читает события напрямую из устройства.
+
+**Что тестируем:** не только "событие есть", но и "противоположное событие отсутствует". `booking_manual` при AI-группе = тихий data quality баг. Без assert на отсутствие — тест не ловит swap.
+
+---
+
+### 10. OpenTelemetry из mobile: один traceparent связывает tap с SQL запросом
+
+**Что:** мобильное приложение генерирует W3C `traceparent` header для каждого API запроса. SUT логирует header через pino-http `customProps` — он автоматически попадает во все child logs включая `appointment.booked`. Loki хранит полный span.
+
+**Почему это важно:** без traceparent невозможно связать конкретный tap пользователя с конкретным DB запросом. С traceparent — одна строка в Loki покрывает всю цепочку: mobile → API gateway → booking service → DB.
+
+**Тест-паттерн:** clear logcat → booking → grep logcat для `[trace] ... POST /appointments` → извлечь traceId → query Loki по traceId → assert `appointmentId` и `responseTime` в той же записи.
+
+**Что узнали:** React Native не требует `react-native-get-random-values` для трейсинга — `Math.random()` достаточен для тестового traceId. Криптостойкость не нужна; уникальность — нужна.
+
+---
+
+### 11. WCAG 2.5.8 touch targets: автотест видит то что глаз не видит
+
+**Что:** Автоматизированный тест `touch-targets.feature` проверяет минимальный размер интерактивных элементов (44dp Android / 44pt iOS). Нашёл 4 реальных дефекта: `logout-button` (19dp high), `map-button-N` (18dp high), `slots-back-button` (21dp high). Все элементы визуально работали — но WCAG-минимум нарушали.
+
+**Почему:** `TouchableOpacity` без `style` имеет touch area равную содержимому. `Text` с `fontSize: 13-15` даёт ~18-21dp по высоте. Фикс: `minHeight: 44, justifyContent: 'center'` на сам `TouchableOpacity`.
+
+**Урок:** Ручное тестирование не ловит touch target дефекты — тестировщик с нормальной моторикой промахивается редко. Автотест на WCAG 2.5.8 это находит систематически по всем экранам.
+
+---
+
+### 12. Before-хук тегируется по сценарию, не по файлу шага
+
+**Что:** Шаг `the patient is logged in on mobile and sees My Visits` определён в `state-transitions.steps.ts` с `Before({ tags: '@state-transitions' })`. При использовании этого шага в `touch-targets.feature` (тег `@touch-targets`) Before-хук не срабатывает → page objects не инициализированы → TypeError: "Cannot read properties of undefined (reading 'login')".
+
+**Причина:** WDIO/Cucumber фильтрует Before по тегу сценария, а не по origin-файлу шага. Шаги — глобальные; Before-хуки — локальные по тегу сценария.
+
+**Фикс:** `Before({ tags: '@state-transitions or @touch-targets' })` — явно включить все теги сценариев которые используют шаги из этого файла.
+
+**Урок:** Если step-definition файл с тегированным Before используется из другого feature — всегда расширять тег фильтра.
+
+---
+
+### 13. Tailwind-500 с белым текстом стабильно не проходит WCAG AA
+
+**Что:** `contrast.feature` нашёл 9 нарушений WCAG AA (минимум 4.5:1) на 3 экранах. Все цвета — стандартная Tailwind палитра: `blue-500` (#3b82f6) = 3.68:1, `green-500` (#22c55e) = 2.28:1, `amber-400` (#f59e0b) = 2.15:1.
+
+**Паттерн:** Tailwind-500 + `#ffffff` text стабильно ниже 4.5:1. Нужен -600 или -700 для соответствия. Tailwind-400 ещё хуже.
+
+**Урок:** Дизайн-системы на Tailwind имеют системный accessibility debt — не случайные ошибки. Автотест находит всё за один прогон. Фикс — поднять все интерактивные цвета на одну ступень темнее.
+
+---
+
+### 14. `adb shell setprop persist.sys.locale` требует root: locale-зависимые тесты не работают на стандартных образах Android 10+
+
+**Что:** RTL и string-overflow тесты падают сразу на `Given the device locale is set to Arabic/German`. `ADB.setLocale()` вызывает `setprop persist.sys.locale` — blocked на Android 10+ без root.
+
+**Правильный подход для не-root эмулятора:** `adb shell am broadcast` для locale или UI Automator. `setprop` работает только с `adb root` или на root build эмулятора.
+
+**Урок:** Это та же категория что MOB-C-96 (SELinux блокирует ls) — команды которые работали на Android 9 перестают работать после апгрейда OS без изменений в тестовом коде. Locale testing и security testing — два слоя где это особенно часто.
+
+---
+
+### 15. Сравнивать в dp, не в px: RN и тест используют разные правила округления
+
+**Что:** После добавления `minHeight: 44` к элементам тест WCAG 2.5.8 всё равно падал: `"terms-link: 117×44dp (308×115px)"`. 44dp = 115px. Тест считал `minPx = Math.round(44 * 420/160) = 116`. `115 < 116` → fail.
+
+**Причина:** React Native рендерит dp→px через floor, тест конвертировал через Math.round. На нестандартной плотности 420dpi эти правила дают разный результат.
+
+**Фикс:** В `touch-targets.steps.ts` — конвертировать `getSize()` (px) обратно в dp через `Math.round`, сравнивать с 44 в dp. `Math.round(115 * 160/420) = 44` → проходит.
+
+**Паттерн:** Всегда сравнивать в единицах спецификации (dp/pt), не в пикселях. `getSize()` возвращает px — это деталь реализации.
+
+---
+
+## Общий паттерн
+
+Мобильное тестирование добавляет слой который в web проектах не существует: платформа сама является частью системы.
+
+- iOS и Android — не "одно и то же но разные". Разные архитектуры сетевого стека, разные lifecycle события, разные способы инспекции.
+- Баги которые видны только в оркестрации слоёв (OS + cache + UI) не ловятся ни API тестами, ни unit тестами каждого слоя.
+- Stub тесты — единственный способ обнаружить расхождения в error UI без ожидания производственного инцидента.

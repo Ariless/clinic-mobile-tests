@@ -1,5 +1,9 @@
 # FDA SaMD Validation — AI Symptom Checker
 
+
+<!-- private-refs-notice -->
+> **Referenced but not in this repository:** `eu-ai-act.feature` live in the private course repo `qa-portfolio-lab-course2/features/`; `wdio.conf.ts` loads them via a relative glob.
+
 **Regulation:** FDA SaMD (Software as a Medical Device) guidance framework  
 **Document type:** Validation evidence package — equivalent to EU AI Act compliance (`eu-ai-act.feature`) for US regulatory context  
 **SUT:** clinic-mobile AI symptom checker — `POST /api/v1/ai/recommend-doctor`  
