@@ -34,7 +34,7 @@ const iosCapabilities = {
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
-  specs: ['./features/**/*.feature', '../qa-portfolio-lab-course2/features/**/*.feature'],
+  specs: ['./features/**/*.feature'],
   maxInstances: 1,
 
   hostname: 'localhost',
@@ -49,10 +49,7 @@ export const config: WebdriverIO.Config = {
 
   framework: 'cucumber',
   cucumberOpts: {
-    require: [
-      './step-definitions/**/*.ts',
-      '../qa-portfolio-lab-course2/step-definitions/**/*.ts',
-    ],
+    require: ['./step-definitions/**/*.ts'],
     tagExpression: TAGS,
     timeout: 180000,
   },

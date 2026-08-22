@@ -1,7 +1,7 @@
 # Platform Parity Report
 
 **Generated:** 2026-05-26  
-**Suite:** clinic-mobile-tests + qa-portfolio-lab-course2  
+**Suite:** clinic-mobile-tests  
 **Platforms:** Android (primary) · iOS (secondary, via `PLATFORM=ios`)
 
 ---

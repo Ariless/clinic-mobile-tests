@@ -1,24 +1,23 @@
-// Platform-aware factory for the course-2 private repo.
-// Base page objects come from clinic-mobile-tests; SymptomCheckerPage is the
-// extended version from this repo (adds voice + on-device AI methods).
+// Platform-aware page object factory: PLATFORM picks the Android or iOS
+// implementation, so step definitions import from here and stay platform-agnostic.
 
-import type { LoginPage as LoginPageType } from '../../clinic-mobile-tests/pages/android/LoginPage'
-import type { DoctorsPage as DoctorsPageType } from '../../clinic-mobile-tests/pages/android/DoctorsPage'
-import type { BookingPage as BookingPageType } from '../../clinic-mobile-tests/pages/android/BookingPage'
-import type { AppointmentsPage as AppointmentsPageType } from '../../clinic-mobile-tests/pages/android/AppointmentsPage'
-import type { DoctorAppointmentsPage as DoctorAppointmentsPageType } from '../../clinic-mobile-tests/pages/android/DoctorAppointmentsPage'
-import type { DeepLinkPage as DeepLinkPageType } from '../../clinic-mobile-tests/pages/android/DeepLinkPage'
-import type { FoldablePage as FoldablePageType } from '../../clinic-mobile-tests/pages/android/FoldablePage'
+import type { LoginPage as LoginPageType } from './android/LoginPage'
+import type { DoctorsPage as DoctorsPageType } from './android/DoctorsPage'
+import type { BookingPage as BookingPageType } from './android/BookingPage'
+import type { AppointmentsPage as AppointmentsPageType } from './android/AppointmentsPage'
+import type { DoctorAppointmentsPage as DoctorAppointmentsPageType } from './android/DoctorAppointmentsPage'
+import type { DeepLinkPage as DeepLinkPageType } from './android/DeepLinkPage'
+import type { FoldablePage as FoldablePageType } from './android/FoldablePage'
 import type { SymptomCheckerPage as SymptomCheckerPageType } from './android/SymptomCheckerPage'
 import type { ClinicMapPage as ClinicMapPageType } from './android/ClinicMapPage'
 import type { WebViewPage as WebViewPageType } from './android/WebViewPage'
-import type { NotificationPage as NotificationPageType } from '../../clinic-mobile-tests/pages/android/NotificationPage'
+import type { NotificationPage as NotificationPageType } from './android/NotificationPage'
 
 const platform = (process.env.PLATFORM ?? 'android') as 'android' | 'ios'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const base = platform === 'ios'
-  ? require('../../clinic-mobile-tests/pages/ios')
-  : require('../../clinic-mobile-tests/pages/android')
+  ? require('./ios')
+  : require('./android')
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const local = platform === 'ios'
   ? require('./ios')
@@ -35,7 +34,7 @@ export const SymptomCheckerPage: typeof SymptomCheckerPageType = local.SymptomCh
 export const ClinicMapPage: typeof ClinicMapPageType = local.ClinicMapPage
 export const WebViewPage: typeof WebViewPageType = local.WebViewPage
 // NotificationPage is Android-only — loaded directly from base repo
-export { NotificationPage } from '../../clinic-mobile-tests/pages/android/NotificationPage'
+export { NotificationPage } from './android/NotificationPage'
 
 export type LoginPage = InstanceType<typeof LoginPageType>
 export type DoctorsPage = InstanceType<typeof DoctorsPageType>

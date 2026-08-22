@@ -1,9 +1,6 @@
 # Performance Budget
 
 
-<!-- private-refs-notice -->
-> **Referenced but not in this repository:** `memory.feature`, `battery.feature` live in the private course repo `qa-portfolio-lab-course2/features/`; `wdio.conf.ts` loads them via a relative glob.
-
 Cold start, frame rate, and memory SLAs enforced as CI assertions.
 
 ## Why a budget, not just a test
