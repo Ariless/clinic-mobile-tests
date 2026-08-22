@@ -1,7 +1,60 @@
 # clinic-mobile-tests
 
-Appium test suite for [clinic-mobile](https://github.com/Ariless/clinic-mobile) — a React Native clinic booking app.
-Tests the same SUT as [clinic-booking-api-tests](https://github.com/Ariless/clinic-booking-api-tests) but at the mobile layer, where device-level behaviour can't be reached by API or browser tests.
+[![Mobile CI](https://github.com/Ariless/clinic-mobile-tests/actions/workflows/mobile-ci.yml/badge.svg)](https://github.com/Ariless/clinic-mobile-tests/actions/workflows/mobile-ci.yml)
+
+**Appium + WDIO + Cucumber** suite for a React Native clinic booking app, run against real Android
+and iOS devices — the layer where permissions, Doze, offline transitions and deep links live, and
+where an API or browser test cannot reach.
+
+| | |
+| --- | --- |
+| **Suite** | 165 scenarios across 50 `.feature` files · 50 step-definition files |
+| **Page objects** | 22, split Android / iOS behind one factory — no platform knowledge in any feature |
+| **Also runs without a device** | 14 Jest tests: Pact consumer contract + AI property/statistical suites |
+| **Platforms** | Android (primary) · iOS via `PLATFORM=ios` |
+| **Stack** | WebdriverIO · Cucumber · Appium · TypeScript · Jest · fast-check · Pact · Stryker · Allure |
+
+> **The apps under test are private repositories, the suite is the point.** You cannot run these
+> tests without the app and its backend. What they are: a React Native booking client against a
+> Node.js + SQLite API — patients book slots, doctors confirm or reject, and the mobile layer adds
+> what only a device has: permissions, Doze, offline transitions, deep links, biometrics.
+
+## Three findings worth the read
+
+**A CI step reported three broken suites as "skipped" for three months.** The helper-test step was
+written as `[ -f jest.helpers.config.ts ] && npm run test:helpers || echo "Skipping: … not present"`.
+The file was there, the tests ran, the tests failed — and `||` caught the non-zero exit, printed the
+skip message and exited zero. In shell, `A && B || C` is not if-then-else: `C` runs when *either* A
+or B fails, and its exit code becomes the line's. Behind the mask sat three real defects: an ADB test
+still waiting on `svc wifi disable`, an `@anthropic-ai/sdk` mock missing `__esModule: true`, and a
+WDIO globals stub that did not know about `browser`. Fixed by moving the file check into the step's
+`if:` — 66 tests across 3 suites green. Any `|| echo` in a CI step reads as *a failure is muted here*.
+
+**The obvious way to take a phone offline leaves it online.** `adb shell svc wifi disable` is the
+command everyone reaches for first, and on an emulator it leaves the route to the host (`10.0.2.2`)
+up. The scenario looks convincing, the app stays connected, and the offline test passes without ever
+testing offline. The suite uses `cmd connectivity airplane-mode enable` instead.
+
+**Contrast failures in a design system are systematic, not accidental.** The accessibility audit
+found every Tailwind-500 colour paired with white text failing WCAG AA, across all screens in one
+run — one fix, one step darker on interactive colours, closed the whole class. The same audit checks
+WCAG 2.5.8 touch targets, which manual testing does not catch: a tester with ordinary motor control
+rarely misses a small button, so the defect never gets reported.
+
+More of these, with mechanisms: `MOBILE_TESTING_INSIGHTS.md` (16 entries).
+
+## Where to look
+
+| If you want | Read |
+| --- | --- |
+| Screens, testIDs, selector formats, seed accounts | `docs/SURFACEMAP.md` |
+| Which tags to run when, and why | `docs/run-strategy.md` |
+| The appointment lifecycle as a formal model | `docs/state-machine.md` |
+| Exploratory sessions with real findings | `docs/et-sessions/` |
+| Accessibility conformance, WCAG evidence | `docs/accessibility-conformance.md` |
+| Where Maestro beats Appium and where it does not | `docs/maestro-vs-appium.md` |
+| Android vs iOS parity, per feature | `docs/platform-parity.md` |
+| Security audit, performance budget, regulatory packs | `docs/security-audit.md`, `docs/performance-budget.md`, `docs/fda-samd-validation.md` |
 
 ## What makes this different
 
@@ -22,9 +75,12 @@ A non-deterministic system can't be tested with deterministic assertions. The su
 
 ## Architecture
 
+<details>
+<summary><b>Full layout</b> — every directory, with what lives in it and why</summary>
+
 ```
 clinic-mobile-tests/
-  features/                    # 49 Cucumber .feature files — no platform knowledge in any of them.
+  features/                    # 50 Cucumber .feature files — no platform knowledge in any of them.
                                # Grouped below by what they interrogate; the directory is the full list.
     # Core journeys
     booking · cross-role · integration · state-transitions · deep-link · calendar · maps · qr-scan
@@ -95,6 +151,8 @@ PLATFORM=android npm test
 PLATFORM=ios npm test
 ```
 
+</details>
+
 ## Prerequisites
 
 - Node.js 20+
@@ -105,7 +163,7 @@ PLATFORM=ios npm test
   npm install -g appium
   appium driver install uiautomator2
   ```
-- clinic-mobile APK installed on the emulator (see [clinic-mobile setup](https://github.com/Ariless/clinic-mobile/blob/main/README.md))
+- clinic-mobile APK installed on the emulator (built from the `clinic-mobile` repository, private)
 - SUT running on host machine: `cd ../sut && npm run dev` (port 3000)
 - For AI Vision patterns (`ai-recommend.feature`): `ANTHROPIC_API_KEY` in `.env`
 - For symptom checker patterns (`symptom-checker.feature`): set `ENABLE_AI_RECOMMENDATION=true` in `.env`; SUT must run with the same flag. `AI_MOCK_RESPONSE=true` on the SUT lets you test without a real API key.
@@ -215,8 +273,8 @@ bundle exec fastlane maestro_smoke  # Maestro 3-flow smoke (no Appium, needs mae
 
 | Repo | Role |
 |------|------|
-| [clinic-mobile](https://github.com/Ariless/clinic-mobile) | React Native app under test |
-| [sut](https://github.com/Ariless/clinic-booking-api) | Backend API (Node.js + SQLite) |
+| `clinic-mobile` (private) | React Native app under test |
+| `clinic-booking-api` (private) | Backend API (Node.js + SQLite) |
 
 ## Related projects
 
