@@ -58,10 +58,11 @@ jobs:
       # SUT answer without calling Claude. It cannot substitute for the server
       # being absent.
       #
-      # Left unset on purpose: ai.properties.test.ts guards on
-      # ENABLE_AI_RECOMMENDATION and skips cleanly, so the report says "skipped"
-      # instead of showing a red suite for a missing dependency. Run them locally
-      # against a running SUT with:
+      # Left unset on purpose. Since 2026-08-22 the suite probes /health before
+      # deciding: no server answering means "skipped", not eight "fetch failed"
+      # lines, and that holds locally too, where .env does set the flag. A run
+      # that must exercise the endpoint sets REQUIRE_SUT=true, which turns an
+      # unreachable SUT into an explicit failure. Run them locally with:
       #   ENABLE_AI_RECOMMENDATION=true npm run test:ai-properties
       - name: AI property tests
         run: npm run test:ai-properties

@@ -1,6 +1,7 @@
 import fc from 'fast-check'
 import { describe, test, expect } from '@jest/globals'
 import * as dotenv from 'dotenv'
+import { readSutHealth } from '../support/sutHealth'
 dotenv.config()
 
 const BASE_URL = process.env.API_HOST_URL ?? 'http://localhost:3000/api/v1'
@@ -38,8 +39,41 @@ function isOk(r: RecommendResult): r is { status: 200; body: RecommendOk } {
   return r.status === 200
 }
 
-// Skip all groups when AI endpoint is disabled
-const conditionalDescribe = AI_ENABLED ? describe : describe.skip
+// Two independent preconditions, and they fail for different reasons:
+//   AI_ENABLED  — the SUT is configured to answer on /ai/recommend-doctor
+//   SUT_UP      — a server is actually listening at BASE_URL
+// Gating on the flag alone made this suite fail with "fetch failed" whenever the
+// flag was set in .env and no server was running. Set REQUIRE_SUT=true (CI, or a
+// run that is meant to exercise the endpoint) to turn an unreachable SUT into a
+// loud failure instead of a skip.
+// /health is mounted at the server root, not under /api/v1 — see sut/src/app.js
+const HEALTH_URL = new URL('/health', BASE_URL).toString()
+const HEALTH = AI_ENABLED ? readSutHealth(HEALTH_URL) : { reachable: false, aiImplementation: null }
+const SUT_UP = HEALTH.reachable
+// The mock answers with a fixed template ("Based on the reported symptoms, a
+// {specialty} is the most relevant specialist."), so anything asserting on the
+// wording of generated prose can only be run against a real model.
+const REAL_MODEL = HEALTH.aiImplementation !== null && HEALTH.aiImplementation !== 'mock'
+const REQUIRE_SUT = process.env.REQUIRE_SUT === 'true'
+
+if (AI_ENABLED && !SUT_UP) {
+  const message = `AI property tests: no SUT reachable at ${HEALTH_URL} — start it with \`cd ../sut && npm run dev\``
+  if (REQUIRE_SUT) throw new Error(message)
+  console.warn(`${message}; skipping`)
+}
+if (!AI_ENABLED) {
+  console.warn('AI property tests: ENABLE_AI_RECOMMENDATION is not true — skipping')
+}
+
+const conditionalDescribe = SUT_UP ? describe : describe.skip
+const generatedProseDescribe = SUT_UP && REAL_MODEL ? describe : describe.skip
+
+if (SUT_UP && !REAL_MODEL) {
+  console.warn(
+    `AI property tests: SUT reports implementation="${HEALTH.aiImplementation}" — ` +
+      'skipping the checks that assert on generated wording'
+  )
+}
 
 // ── #33 — Property-based invariants ──────────────────────────────────────────
 
@@ -143,6 +177,27 @@ conditionalDescribe('AI recommendation — bounded non-determinism (#37)', () =>
     expect(sizeBytes).toBeLessThan(2048)
   })
 
+  test('same symptom → same specialty across 3 independent runs — cross-session stability', async () => {
+    const runs = await Promise.all(
+      Array.from({ length: 3 }, () => recommend(SYMPTOMS)),
+    )
+    const specialties = runs.filter(isOk).map(r => r.body.recommendedSpecialty)
+    if (specialties.length < 2) return // can't compare if most runs failed
+
+    // All successful runs should agree on the specialty for a clear-cut symptom set
+    const unique = new Set(specialties)
+    expect(unique.size).toBe(1)
+  }, 30_000)
+})
+
+// ── Generated wording — real model only ──────────────────────────────────────
+// Moved out of #37: the assertion is about what the model wrote, and the mock
+// writes a fixed template that names the specialty and nothing from the input.
+// Run against a Claude-backed SUT: AI_MOCK_RESPONSE=false ANTHROPIC_API_KEY=… npm run dev
+
+generatedProseDescribe('AI recommendation — generated wording', () => {
+  const SYMPTOMS = 'chest pain and shortness of breath'
+
   test('reasoning contains at least one keyword from the symptom input', async () => {
     const result = await recommend(SYMPTOMS)
     if (!isOk(result) || !result.body.reasoning) return
@@ -155,16 +210,4 @@ conditionalDescribe('AI recommendation — bounded non-determinism (#37)', () =>
     // A reasoning of "A specialist is recommended based on your symptoms." fails this test.
     expect(containsKeyword).toBe(true)
   })
-
-  test('same symptom → same specialty across 3 independent runs — cross-session stability', async () => {
-    const runs = await Promise.all(
-      Array.from({ length: 3 }, () => recommend(SYMPTOMS)),
-    )
-    const specialties = runs.filter(isOk).map(r => r.body.recommendedSpecialty)
-    if (specialties.length < 2) return // can't compare if most runs failed
-
-    // All successful runs should agree on the specialty for a clear-cut symptom set
-    const unique = new Set(specialties)
-    expect(unique.size).toBe(1)
-  }, 30_000)
 })

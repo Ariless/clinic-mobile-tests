@@ -64,9 +64,13 @@ clinic-mobile-tests/
     mobile.pact.consumer.test.ts  # Consumer contract: clinic-mobile → clinic-booking-api (6 interactions)
     tsconfig.json              # IDE type support for pact/ (Jest uses jest.tsconfig.json at root)
   pacts/
-    clinic-mobile-clinic-booking-api.json  # Generated pact file (checked in for provider verification)
+    clinic-mobile-clinic-booking-api.json  # Generated pact file. Verified against the running API by
+                               # clinic-booking-api-tests: tests/api/pact/mobile.pact.provider.test.ts,
+                               # which keeps its own copy and fails if this one drifts (since 2026-08-22).
   ai-properties/
-    ai.properties.test.ts      # Jest: #33 property-based, #35 statistical, #36 hallucination, #37 bounded SLA
+    ai.properties.test.ts      # Jest: #33 property-based, #35 statistical, #36 hallucination, #37 bounded SLA,
+                               # plus a wording group that runs only against a real model. Skips with a
+                               # reason when no SUT answers at /health (since 2026-08-22).
     tsconfig.json              # IDE type support for ai-properties/
   jest.tsconfig.json           # Root Jest tsconfig — covers pact/ + ai-properties/, excludes WDIO globals
   wdio.conf.ts                 # PLATFORM env var picks pages/android/ or pages/ios/
