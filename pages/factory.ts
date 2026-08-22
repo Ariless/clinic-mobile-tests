@@ -15,25 +15,21 @@ import type { NotificationPage as NotificationPageType } from './android/Notific
 
 const platform = (process.env.PLATFORM ?? 'android') as 'android' | 'ios'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const base = platform === 'ios'
-  ? require('./ios')
-  : require('./android')
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const local = platform === 'ios'
+const pages = platform === 'ios'
   ? require('./ios')
   : require('./android')
 
-export const LoginPage: typeof LoginPageType = base.LoginPage
-export const DoctorsPage: typeof DoctorsPageType = base.DoctorsPage
-export const BookingPage: typeof BookingPageType = base.BookingPage
-export const AppointmentsPage: typeof AppointmentsPageType = base.AppointmentsPage
-export const DoctorAppointmentsPage: typeof DoctorAppointmentsPageType = base.DoctorAppointmentsPage
-export const DeepLinkPage: typeof DeepLinkPageType = base.DeepLinkPage
-export const FoldablePage: typeof FoldablePageType = base.FoldablePage
-export const SymptomCheckerPage: typeof SymptomCheckerPageType = local.SymptomCheckerPage
-export const ClinicMapPage: typeof ClinicMapPageType = local.ClinicMapPage
-export const WebViewPage: typeof WebViewPageType = local.WebViewPage
-// NotificationPage is Android-only — loaded directly from base repo
+export const LoginPage: typeof LoginPageType = pages.LoginPage
+export const DoctorsPage: typeof DoctorsPageType = pages.DoctorsPage
+export const BookingPage: typeof BookingPageType = pages.BookingPage
+export const AppointmentsPage: typeof AppointmentsPageType = pages.AppointmentsPage
+export const DoctorAppointmentsPage: typeof DoctorAppointmentsPageType = pages.DoctorAppointmentsPage
+export const DeepLinkPage: typeof DeepLinkPageType = pages.DeepLinkPage
+export const FoldablePage: typeof FoldablePageType = pages.FoldablePage
+export const SymptomCheckerPage: typeof SymptomCheckerPageType = pages.SymptomCheckerPage
+export const ClinicMapPage: typeof ClinicMapPageType = pages.ClinicMapPage
+export const WebViewPage: typeof WebViewPageType = pages.WebViewPage
+// NotificationPage is Android-only — re-exported directly, not through the platform switch
 export { NotificationPage } from './android/NotificationPage'
 
 export type LoginPage = InstanceType<typeof LoginPageType>
