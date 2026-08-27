@@ -1,11 +1,23 @@
 @eu-ai-act @compliance
 Feature: EU AI Act compliance — medical AI high-risk system requirements
 
-  # Medical AI recommendation = HIGH RISK under EU AI Act (Art. 6, Annex III)
-  # Applicable from August 2026. Tested requirements:
+  # Medical AI recommendation is treated here as a HIGH RISK system (Art. 6). Tested requirements,
+  # all from Chapter III:
   #   Art. 13 — Transparency: users informed they interact with AI
   #   Art. 14 — Human oversight: meaningful ability to override AI output
   #   Art. 15 — Accuracy: tested against a golden dataset of known symptom→specialty pairs
+  #
+  # Dates, corrected 2026-08-27. This used to read "Applicable from August 2026", which was true when
+  # written and is not any more: the Digital Omnibus on AI entered into force on 2026-07-27 and moved
+  # the Chapter III obligations for standalone Annex III systems from 2026-08-02 to **2027-12-02**;
+  # for AI embedded in products already regulated under Annex I, to 2028-08-02. What did NOT move:
+  # the Art. 50 transparency and AI-content-labelling duties, the GPAI provider obligations, and the
+  # Art. 5 prohibited-practices regime.
+  #
+  # Which of the two Annexes a symptom-triage feature falls under is a classification question this
+  # project has not answered — a medical device under MDR points at Annex I, a service-access
+  # decision points at Annex III. The tests below do not depend on the answer: they assert the
+  # behaviour, and the deadline only decides when it becomes obligatory rather than good practice.
   #
   # Golden dataset scenarios require on-device AI mode (deterministic, no network).
   # Scenarios tagged @ondevice skip automatically if the ondevice badge is absent.

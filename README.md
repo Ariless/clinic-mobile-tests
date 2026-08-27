@@ -8,8 +8,8 @@ where an API or browser test cannot reach.
 
 | | |
 | --- | --- |
-| **Suite** | 165 scenarios across 50 `.feature` files · 50 step-definition files |
-| **Page objects** | 22, split Android / iOS behind one factory — no platform knowledge in any feature |
+| **Suite** | 168 scenarios across 50 `.feature` files · 50 step-definition files |
+| **Page objects** | 11 screens, most of them split Android / iOS behind one factory — no platform knowledge in any feature |
 | **Also runs without a device** | 14 Jest tests: Pact consumer contract + AI property/statistical suites |
 | **Platforms** | Android (primary) · iOS via `PLATFORM=ios` |
 | **Stack** | WebdriverIO · Cucumber · Appium · TypeScript · Jest · fast-check · Pact · Stryker · Allure |

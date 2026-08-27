@@ -3,10 +3,26 @@ import * as fs from 'fs'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+/**
+ * The model every check in this file asks, in one place.
+ *
+ * Before 2026-08-27 the id was a literal at both call sites here, and at eighteen more across the
+ * portfolio. One decision, copied — which is where drift starts.
+ *
+ * It stays on the cheap model deliberately, unlike the SUT suite's LLM judge, which moved to a
+ * stronger one on the same day. The difference is what is on trial. There the defendant is a model,
+ * and a judge from the same family shares its blind spots. Here the defendant is the app: these
+ * calls read screenshots and rate accessibility, friction and microcopy, and their thresholds — plus
+ * the EU AI Act golden dataset in `eu-ai-act.steps.ts` — were calibrated against this model's
+ * output. Raising it would move every score at once, which is a re-calibration exercise, not a
+ * configuration change. Overridable so that exercise can be run when it is chosen.
+ */
+const MODEL = process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001'
+
 async function callWithScreenshot(imagePath: string, prompt: string): Promise<string> {
   const imageData = fs.readFileSync(imagePath).toString('base64')
   const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: MODEL,
     max_tokens: 1024,
     messages: [{
       role: 'user',
@@ -186,7 +202,7 @@ Respond with JSON only, no markdown:
 { "steps": [{ "name": string, "friction": number, "reason": string }], "worst_step": string, "recommendation": string }`,
     })
     const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: MODEL,
       max_tokens: 1024,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messages: [{ role: 'user', content: content as any }],
