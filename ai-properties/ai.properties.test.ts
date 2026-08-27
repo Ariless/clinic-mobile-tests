@@ -2,6 +2,7 @@ import fc from 'fast-check'
 import { describe, test, expect } from '@jest/globals'
 import * as dotenv from 'dotenv'
 import { readSutHealth } from '../support/sutHealth'
+import { ApiClient } from '../support/apiClient'
 dotenv.config()
 
 const BASE_URL = process.env.API_HOST_URL ?? 'http://localhost:3000/api/v1'
@@ -25,10 +26,24 @@ type RecommendOk = {
 type RecommendErr = { errorCode: string; message: string }
 type RecommendResult = { status: number; body: RecommendOk | RecommendErr }
 
+// The route requires a bearer token since 2026-08-27: it performs a delegated call to a paid
+// external model, so it identifies the caller first. Before that these tests called it anonymously
+// and got a 200 — which is why every property here started failing with a 401 the day it changed.
+// One login for the whole file: the properties are about the recommendation, not about auth.
+let accessToken: string | null = null
+
+async function token(): Promise<string> {
+  if (!accessToken) accessToken = await ApiClient.loginAsPatient()
+  return accessToken
+}
+
 async function recommend(symptoms: string): Promise<RecommendResult> {
   const res = await fetch(`${BASE_URL}/ai/recommend-doctor`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${await token()}`,
+    },
     body: JSON.stringify({ symptoms }),
   })
   const body = await res.json() as RecommendOk | RecommendErr
