@@ -34,9 +34,9 @@
     "test:self-healing": "TAGS=@self-healing wdio run wdio.conf.ts",
     "test:voice-ai": "TAGS=@voice-ai wdio run wdio.conf.ts",
     "test:ondevice-ai": "TAGS=@ondevice-ai wdio run wdio.conf.ts",
-    "test:pact": "jest --testPathPattern=pact --passWithNoTests",
-    "test:ai-properties": "jest --testPathPattern=ai-properties --passWithNoTests",
-    "test:differential": "jest --testPathPattern=differential --passWithNoTests",
+    "test:pact": "jest --testPathPatterns=pact --passWithNoTests",
+    "test:ai-properties": "jest --testPathPatterns=ai-properties --passWithNoTests",
+    "test:differential": "jest --testPathPatterns=differential --passWithNoTests",
     "test:helpers": "jest --config jest.helpers.config.ts --passWithNoTests",
     "test:mutation": "stryker run",
     "perf:report": "node scripts/perf-report.js",
@@ -54,7 +54,7 @@
     "test:datetime-locale": "TAGS=@datetime-locale wdio run wdio.conf.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.120.0",
+    "@anthropic-ai/sdk": "^0.122.0",
     "@wdio/allure-reporter": "^9.0.0",
     "@wdio/cli": "^9.27.1",
     "@wdio/cucumber-framework": "^9.0.0",
@@ -65,16 +65,23 @@
   },
   "devDependencies": {
     "@pact-foundation/pact": "^16.4.0",
-    "@stryker-mutator/core": "^9.6.1",
-    "@stryker-mutator/jest-runner": "^9.6.1",
-    "@stryker-mutator/typescript-checker": "^9.6.1",
-    "@types/jest": "^29.0.0",
+    "@stryker-mutator/core": "^10.0.0",
+    "@stryker-mutator/jest-runner": "^10.0.0",
+    "@stryker-mutator/typescript-checker": "^10.0.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.20.1",
     "@wdio/types": "^9.0.0",
     "fast-check": "^4.9.0",
-    "jest": "^29.0.0",
-    "ts-jest": "^29.0.0",
+    "jest": "^30.5.0",
+    "ts-jest": "^29.4.12",
     "ts-node": "^10.9.0",
     "typescript": "^5.4.0"
+  },
+  "overrides": {
+    "tmp": "^0.2.7",
+    "deepmerge-ts": "^8.0.2",
+    "qs": "^6.15.3",
+    "uuid": "^14.0.0",
+    "@puppeteer/browsers": "^3.2.1"
   }
 }
