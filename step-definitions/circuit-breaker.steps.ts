@@ -50,8 +50,26 @@ Then('the symptom checker shows a recommendation', async function () {
 
 Then('the symptom checker shows a patient-appropriate error within 3 seconds', async function () {
   await symptomPage.waitForError(3000)
-  const text = await this.el?.('symptom-error')?.getText?.() ?? ''
+
+  // Read through the page object, as every other step does. Until 2026-08-27 this line was
+  // `await this.el?.('symptom-error')?.getText?.() ?? ''` — and `this.el` is defined nowhere in
+  // `support/`, so the optional chain collapsed to '' on every run. The step attached an empty
+  // string to the report and asserted nothing about it, while `getErrorText()` sat unused on the
+  // page object. The scenario was green because the wait above did all the work: it proved an
+  // error appeared, never what it said.
+  const text = await symptomPage.getErrorText()
   this.attach(JSON.stringify({ errorText: text, circuitState: 'open' }), 'application/json')
+
+  // Same floor as the other patient-appropriate steps: readable prose, not a stack trace or JSON.
+  expect(text).not.toMatch(/Error:|TypeError:|undefined|{/)
+  expect(text.length).toBeGreaterThan(10)
+
+  // And the part specific to an open breaker. "Please try again" is the one instruction this state
+  // must not give: the backend has deliberately stopped calling the model, so a retry is a request
+  // it already knows it will shed, and the patient is being asked to generate load that cannot
+  // succeed. The app said exactly that until 2026-08-27, because CIRCUIT_OPEN was missing from the
+  // branch that carries the useful advice — and this step could not see it.
+  expect(text.toLowerCase()).not.toContain('try again')
 })
 
 Then('the AI circuit breaker state is {string}', async function (expectedState: string) {

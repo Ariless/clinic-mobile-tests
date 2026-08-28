@@ -8,9 +8,9 @@ where an API or browser test cannot reach.
 
 | | |
 | --- | --- |
-| **Suite** | 168 scenarios across 50 `.feature` files · 50 step-definition files |
+| **Suite** | 165 scenarios across 50 `.feature` files (177 runs once `Examples` expand) · 50 step-definition files |
 | **Page objects** | 11 screens, most of them split Android / iOS behind one factory — no platform knowledge in any feature |
-| **Also runs without a device** | 14 Jest tests: Pact consumer contract + AI property/statistical suites |
+| **Also runs without a device** | 20 Jest tests: Pact consumer contract, AI property/statistical suites, and the engine-parity differential |
 | **Platforms** | Android (primary) · iOS via `PLATFORM=ios` |
 | **Stack** | WebdriverIO · Cucumber · Appium · TypeScript · Jest · fast-check · Pact · Stryker · Allure |
 
@@ -41,7 +41,7 @@ run — one fix, one step darker on interactive colours, closed the whole class.
 WCAG 2.5.8 touch targets, which manual testing does not catch: a tester with ordinary motor control
 rarely misses a small button, so the defect never gets reported.
 
-More of these, with mechanisms: `MOBILE_TESTING_INSIGHTS.md` (16 entries).
+More of these, with mechanisms: `MOBILE_TESTING_INSIGHTS.md` (17 entries).
 
 ## Where to look
 
@@ -155,7 +155,7 @@ PLATFORM=ios npm test
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22+ (`engines.node` is `>=22`)
 - Java 17+ (required by Appium)
 - Android Studio with AVD — Pixel 6 API 33 recommended
 - Appium 2.x and uiautomator2 driver:
