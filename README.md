@@ -6,6 +6,8 @@
 and iOS devices — the layer where permissions, Doze, offline transitions and deep links live, and
 where an API or browser test cannot reach.
 
+*One of four repositories on [what a green test run does not tell you](#part-of-a-series).*
+
 | | |
 | --- | --- |
 | **Suite** | 165 scenarios across 50 `.feature` files (177 runs once `Examples` expand) · 50 step-definition files |
@@ -276,7 +278,15 @@ bundle exec fastlane maestro_smoke  # Maestro 3-flow smoke (no Appium, needs mae
 | `clinic-mobile` (private) | React Native app under test |
 | `clinic-booking-api` (private) | Backend API (Node.js + SQLite) |
 
-## Related projects
+## Part of a series
 
-- [clinic-booking-api-tests](https://github.com/Ariless/clinic-booking-api-tests) — API, E2E, and UI tests for the same backend
+Four repositories around one question: **what a green test run does not tell you.**
+
+- [clinic-booking-api-tests](https://github.com/Ariless/clinic-booking-api-tests) — coverage you can audit: a requirements matrix, a defect register, and counts verified by CI so the README cannot drift from the code
+- **clinic-mobile-tests** — the layer an API or a browser test cannot reach: permissions, Doze, offline transitions, deep links *(you are here)*
+- [temporal-failure-lab](https://github.com/Ariless/temporal-failure-lab) — the system is working and the tests still lie: time, ordering and eventual consistency
+- [silent-tests-lab](https://github.com/Ariless/silent-tests-lab) — tests that pass without asserting, text wrong for half the roster, and content nobody ever reaches
+
+## Related documents
+
 - Test strategy and portfolio narrative: [`docs/TEST_STRATEGY.md` in clinic-booking-api-tests](https://github.com/Ariless/clinic-booking-api-tests/blob/main/docs/TEST_STRATEGY.md) — a separate repository, so the relative link this line used to carry only resolved on a machine with both checked out side by side
