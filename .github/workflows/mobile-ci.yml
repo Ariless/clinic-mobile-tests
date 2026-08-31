@@ -33,9 +33,9 @@ jobs:
     name: Type check + Pact + AI properties
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -83,9 +83,9 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_mutation }}
     needs: static
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stryker-report-${{ github.run_id }}
           path: stryker-report/
@@ -110,14 +110,14 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_smoke }}
     needs: static
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -126,7 +126,7 @@ jobs:
 
       # Build APK from clinic-mobile source
       - name: Checkout clinic-mobile
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Ariless/clinic-mobile
           path: clinic-mobile-src
@@ -190,7 +190,7 @@ jobs:
 
       - name: Upload Allure report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-report-android-${{ github.run_id }}
           path: allure-report/
@@ -203,9 +203,9 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_smoke_ios }}
     needs: static
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -214,7 +214,7 @@ jobs:
 
       # Build .app from clinic-mobile source
       - name: Checkout clinic-mobile
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Ariless/clinic-mobile
           path: clinic-mobile-src
@@ -279,7 +279,7 @@ jobs:
 
       - name: Upload Allure report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-report-ios-${{ github.run_id }}
           path: allure-report/
@@ -292,14 +292,14 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_maestro }}
     needs: static
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -307,7 +307,7 @@ jobs:
       - run: npm ci
 
       - name: Checkout clinic-mobile
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Ariless/clinic-mobile
           path: clinic-mobile-src
@@ -358,7 +358,7 @@ jobs:
 
       - name: Upload Maestro results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: maestro-results-${{ github.run_id }}
           path: maestro-results.xml
@@ -371,14 +371,14 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_perf }}
     needs: static
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -386,7 +386,7 @@ jobs:
       - run: npm ci
 
       - name: Checkout clinic-mobile
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Ariless/clinic-mobile
           path: clinic-mobile-src
@@ -447,7 +447,7 @@ jobs:
 
       - name: Upload perf summary
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: perf-summary-${{ github.run_id }}
           path: perf-summary.json
@@ -459,7 +459,7 @@ jobs:
 
       - name: Upload Allure report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-report-perf-${{ github.run_id }}
           path: allure-report/
