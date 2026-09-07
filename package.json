@@ -70,9 +70,9 @@
     "@stryker-mutator/typescript-checker": "^10.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.20.1",
-    "@wdio/types": "^9.0.0",
+    "@wdio/types": "^9.31.2",
     "fast-check": "^4.9.0",
-    "jest": "^30.5.0",
+    "jest": "^30.5.1",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.0",
     "typescript": "^5.4.0"
