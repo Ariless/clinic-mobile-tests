@@ -54,7 +54,7 @@
     "test:datetime-locale": "TAGS=@datetime-locale wdio run wdio.conf.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.122.0",
+    "@anthropic-ai/sdk": "^0.132.1",
     "@wdio/allure-reporter": "^9.0.0",
     "@wdio/cli": "^9.27.1",
     "@wdio/cucumber-framework": "^9.0.0",
