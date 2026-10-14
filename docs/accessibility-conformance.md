@@ -67,7 +67,7 @@ Legend: ✅ Supported · ⚠️ Partially Supported · ❌ Not Supported · — 
 | 2.5.3 Label in Name | A | ✅ | Visible button text matches or is contained in `accessibilityLabel` (e.g. visible "Log in" → label "Log in"). Verified in TalkBack tests. |
 | 2.5.4 Motion Actuation | A | ✅ | No shake-to-action, no device tilt interactions in any screen. |
 | 2.5.7 Dragging Movements | AA | ✅ | No drag-required interactions. All actions are tap-based. (New in WCAG 2.2) |
-| 2.5.8 Target Size (Minimum) | AA | ✅ | All clickable elements ≥ 44dp × 44dp verified via Appium getSize + density conversion (`#108`). (New in WCAG 2.2) |
+| 2.5.8 Target Size (Minimum) | AA | ✅ | 2.5.8 requires 24×24; the suite enforces the stricter 44dp × 44dp (the 2.5.5 AAA size) on all clickable elements, verified via Appium getSize + density conversion (`#108`). (New in WCAG 2.2) |
 
 ---
 
