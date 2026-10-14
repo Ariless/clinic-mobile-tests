@@ -272,14 +272,14 @@ export const ADB = {
   // Returns the physical display density in dpi.
   // Used to convert px → dp: dp = px * 160 / density.
   // Falls back to 160 (mdpi baseline) if the command fails.
+  // Throws instead of falling back to 160: at 160 dp equals px, so a silent default would turn
+  // the touch-target check back into a px-vs-44 comparison that passes on any dense screen.
+  // `wm density` prints an Override line when the density has been changed; apps render with it.
   getDisplayDensity(): number {
-    try {
-      const output = adb('wm density')
-      const match = output.match(/\d+/)
-      return match ? parseInt(match[0], 10) : 160
-    } catch {
-      return 160
-    }
+    const output = adb('wm density')
+    const match = output.match(/Override density:\s*(\d+)/) ?? output.match(/Physical density:\s*(\d+)/)
+    if (!match) throw new Error(`Could not parse density from wm density output:\n${output}`)
+    return parseInt(match[1], 10)
   },
 
   // Returns the ls -ld output for the app's private data directory.

@@ -40,7 +40,7 @@ testing offline. The suite uses `cmd connectivity airplane-mode enable` instead.
 **Contrast failures in a design system are systematic, not accidental.** The accessibility audit
 found every Tailwind-500 colour paired with white text failing WCAG AA, across all screens in one
 run — one fix, one step darker on interactive colours, closed the whole class. The same audit checks
-WCAG 2.5.8 touch targets, which manual testing does not catch: a tester with ordinary motor control
+44dp touch targets (the WCAG 2.5.5 size), which manual testing does not catch: a tester with ordinary motor control
 rarely misses a small button, so the defect never gets reported.
 
 More of these, with mechanisms: `MOBILE_TESTING_INSIGHTS.md` (17 entries).
@@ -199,7 +199,7 @@ npm run test:doze                      # @doze — Android Doze mode: wake locks
 npm run test:deep-link                 # @deeplink — clinic:// URI scheme: valid ID / not-found / unauthenticated redirect
 npm run test:theming                   # @theming — dark mode readability via Claude Vision
 npm run test:orientation               # @orientation — portrait/landscape rotation mid-flow
-npm run test:touch-targets             # @touch-targets — WCAG 2.5.8: all clickable elements ≥ 44dp
+npm run test:touch-targets             # @touch-targets — all clickable elements ≥ 44dp (WCAG 2.5.5 size)
 npm run test:foldable                  # @foldable — dual-panel layout on large screen / foldable device
 npm run test:feature-flag              # @feature-flag — AI tab visibility matches ENABLE_AI_RECOMMENDATION flag
 npm run test:qr                        # @qr — QR code scan via ADB deep link: valid / offline / cancelled appointment
@@ -232,7 +232,7 @@ npm run test:maestro                   # Maestro smoke flows (no Appium required
 | `@deeplink` | `clinic://appointment/:id` URI scheme: valid ID → detail screen with correct data; non-existent ID → not-found error; no session → login redirect (not crash) | Before release |
 | `@theming` | Dark mode readability: Claude Vision checks login, doctors list, and booking screen for invisible or clipped content | Before release / after UI theme changes |
 | `@orientation` | Portrait/landscape rotation mid-booking and mid-doctors-list: screen does not reset, form data not lost, no error triggered | Before release / after UI layout changes |
-| `@touch-targets` | WCAG 2.5.8: all clickable elements on each screen are ≥ 44dp; failures reported with resource-id and actual dp/px size | Before release |
+| `@touch-targets` | All clickable elements on each screen are ≥ 44dp (WCAG 2.5.5 size, above the 24×24 of 2.5.8); failures reported with resource-id and actual dp/px size | Before release |
 | `@self-healing` | Stale testIDs recovered via Claude Vision + W3C pointer tap | After testID renames |
 | `@foldable` | Dual-panel layout on large screen (≥ 600 dp): doctors list + booking panel side by side; fold collapses back to single panel; Claude Vision layout check | Before release / after layout changes |
 | `@feature-flag` | AI Check tab appears only when `ENABLE_AI_RECOMMENDATION=true`; environment-agnostic contract: `/health` flag state must match visible tab bar | After flag changes / before release |

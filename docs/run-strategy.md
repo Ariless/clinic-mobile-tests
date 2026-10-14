@@ -24,7 +24,7 @@ When to run each tag, expected duration, and the policy for handling flaky tests
 | `@deeplink` | `clinic://appointment/:id` URI scheme: authenticated user → detail screen; invalid ID → not-found error; unauthenticated → login redirect | `npm run test:deep-link` |
 | `@theming` | Dark mode readability: Claude Vision checks that login, doctors list, and booking screen have no invisible or clipped content in dark mode | `npm run test:theming` |
 | `@orientation` | Portrait/landscape rotation mid-flow: booking screen and doctors list survive rotation without reset or data loss | `npm run test:orientation` |
-| `@touch-targets` | WCAG 2.5.8: all clickable elements on each screen are ≥ 44dp; failures reported with resource-id and actual dp size | `npm run test:touch-targets` |
+| `@touch-targets` | All clickable elements on each screen are ≥ 44dp (WCAG 2.5.5 size, above the 24×24 of 2.5.8); failures reported with resource-id and actual dp size | `npm run test:touch-targets` |
 | `@reduce-motion` | WCAG 2.3.3: booking confirmation shows static text + icon (not animation-only); all screens navigable with animations disabled (Android: `animator_duration_scale=0`; iOS: `ReduceMotion=true`) | `TAGS="@reduce-motion" npm test` |
 | `@self-healing` | Self-healing locator resilience: stale testIDs are recovered via Claude Vision screenshot analysis and W3C pointer tap | `npm run test:self-healing` |
 | `@foldable` | Foldable / large-screen layout: dual-panel visible at ≥ 600 dp, fold collapses to single panel, Claude Vision layout check | `npm run test:foldable` |

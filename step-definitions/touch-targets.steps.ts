@@ -4,7 +4,8 @@ import { ADB } from '../support/adb'
 
 const PLATFORM = process.env.PLATFORM ?? 'android'
 
-// WCAG 2.2 SC 2.5.8 — minimum touch target: 44dp (Android) / 44pt (iOS).
+// Minimum touch target: 44dp (Android) / 44pt (iOS). 44 is the WCAG 2.5.5 (AAA) size;
+// 2.5.8 (AA) asks for 24×24, so an element that passes here also meets 2.5.8.
 // Android: getSize() returns px — convert via device density.
 // iOS: getSize() returns logical points — no conversion needed.
 Then('all interactive elements meet the 44dp minimum touch target', async function () {

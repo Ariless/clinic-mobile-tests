@@ -164,14 +164,21 @@ describe('ADB — getDisplayDensity()', () => {
     expect(ADB.getDisplayDensity()).toBe(420)
   })
 
-  it('returns 160 as fallback when command fails', () => {
-    mockExecSync.mockImplementation(() => { throw new Error('no device') })
-    expect(ADB.getDisplayDensity()).toBe(160)
+  it('prefers the override density when one is set', () => {
+    mockExecSync.mockReturnValue('Physical density: 420\nOverride density: 480')
+    expect(ADB.getDisplayDensity()).toBe(480)
   })
 
-  it('returns 160 when output contains no digits', () => {
+  // Both cases returned 160 until 2026-10-14. At 160 dp equals px, so the touch-target
+  // check silently went back to comparing pixels with 44 (MOB-C-69).
+  it('throws when the command fails instead of defaulting to 160', () => {
+    mockExecSync.mockImplementation(() => { throw new Error('no device') })
+    expect(() => ADB.getDisplayDensity()).toThrow('no device')
+  })
+
+  it('throws when the output has no density line', () => {
     mockExecSync.mockReturnValue('no density info')
-    expect(ADB.getDisplayDensity()).toBe(160)
+    expect(() => ADB.getDisplayDensity()).toThrow(/density/)
   })
 })
 

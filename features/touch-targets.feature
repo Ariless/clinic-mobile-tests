@@ -1,4 +1,4 @@
-Feature: Touch targets — WCAG 2.5.8 minimum touch target size
+Feature: Touch targets — 44dp minimum (WCAG 2.5.5 size; above the 24×24 of 2.5.8)
 
   @touch-targets @a11y @android
   Scenario: Login screen interactive elements meet 44dp minimum
